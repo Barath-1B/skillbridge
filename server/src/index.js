@@ -1,0 +1,68 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+const connectDB = require('./config/db');
+const errorHandler = require('./middleware/error.middleware');
+const authRoutes = require('./modules/auth/auth.routes');
+const profileRoutes = require('./modules/profile/profile.routes');
+const analyzerRoutes = require('./modules/analyzer/analyzer.routes');
+const careersRoutes = require('./modules/careers/careers.routes');
+const roadmapRoutes = require('./modules/roadmap/roadmap.routes');
+const adminRoutes = require('./modules/admin/routes');
+
+// Validate required environment variables before starting
+const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'PORT'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+if (missingEnvVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  process.exit(1);
+}
+
+const app = express();
+
+// Security middleware
+app.use(helmet()); // Set security HTTP headers
+app.use(compression()); // Compress JSON responses
+
+// Global rate limiter: 100 requests per 15 minutes
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later',
+  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+});
+app.use(globalLimiter);
+
+connectDB().catch(err => {
+  console.error('Failed to connect to MongoDB:', err);
+  process.exit(1);
+});
+
+app.use(cors({
+  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/analyze', analyzerRoutes);
+app.use('/api/careers', careersRoutes);
+app.use('/api/roadmap', roadmapRoutes);
+app.use('/api/admin', adminRoutes);
+
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
