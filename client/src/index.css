@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@layer components {
+  /* Button utilities */
+  .btn-primary {
+    @apply w-full px-4 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .btn-secondary {
+    @apply w-full px-4 py-3 bg-gray-400 text-white font-semibold rounded-lg hover:bg-gray-500 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors;
+  }
+
+  .btn-success {
+    @apply w-full px-4 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors;
+  }
+
+  /* Card utilities */
+  .card {
+    @apply border border-gray-200 rounded-lg shadow-md p-6 bg-white;
+  }
+
+  /* Form input utilities */
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all;
+  }
+
+  /* Badge utilities */
+  .badge {
+    @apply inline-block px-2 py-1 text-xs font-semibold rounded-full;
+  }
+
+  .badge-primary {
+    @apply inline-block px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800;
+  }
+
+  .badge-success {
+    @apply inline-block px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply inline-block px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-danger {
+    @apply inline-block px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800;
+  }
+}
