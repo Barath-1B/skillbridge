@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mongodb": {
+      "command": "node",
+      "args": [
+        "server/mcp-server.mjs"
+      ],
+      "env": {
+        "MONGO_URI": "mongodb://localhost:27017/skillbridge",
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}
