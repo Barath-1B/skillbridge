@@ -26,3 +26,6 @@ Thumbs.db
 
 # Claude internal
 .claude/
+
+# Local clutter — moved-aside files, never committed
+/clutter/

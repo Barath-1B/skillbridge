@@ -18,6 +18,18 @@ const userProgressSchema = new mongoose.Schema(
         ref: 'Skill',
       },
     ],
+    completedRoadmapItems: {
+      type: [
+        new mongoose.Schema(
+          {
+            phase: { type: Number, required: true, min: 1, max: 3 },
+            skillName: { type: String, required: true, trim: true },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
     percentComplete: {
       type: Number,
       default: 0,

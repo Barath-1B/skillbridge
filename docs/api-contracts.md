@@ -341,73 +341,80 @@ Get gap analysis for user vs specific career.
 
 ## Roadmap Endpoints
 
-### POST /roadmap
-Create a learning roadmap for a career path.
+All roadmap endpoints require authentication via the JWT cookie.
 
-**Headers:** `Authorization: Bearer <token>`
+### GET /roadmap
+List the current user's saved career-path roadmaps (those they've saved via `POST /careers/:id/save`), with match score and progress for each.
 
-**Request:**
+**Response (200):**
 ```js
 {
-  careerPathId: ObjectId,
-  targetCompletionMonths: Number (optional, default: 12)
+  statusCode: 200,
+  data: [
+    {
+      career: { _id, title, domain, difficulty, demand, estimatedTimeToBridge },
+      matchScore: Number,
+      gapCount: Number,
+      progress: {
+        percentComplete: Number,
+        completedSkillCount: Number,
+        totalRequiredSkillCount: Number
+      },
+      savedAt: Date,
+      updatedAt: Date
+    }
+  ],
+  message: "Roadmaps retrieved"
 }
 ```
 
-**Response (201):**
+---
+
+### GET /roadmap/:careerPathId
+Full career-brief payload: career details, gap-analysis, annotated phase-by-phase roadmap, and the user's progress on it.
+
+**Response (200):**
 ```js
 {
-  statusCode: 201,
+  statusCode: 200,
   data: {
-    _id: ObjectId,
-    userId: ObjectId,
-    careerPathId: ObjectId,
-    currentPhase: String,
-    percentComplete: Number,
-    milestones: [
+    career: { _id, title, domain, description, difficulty, demand, estimatedTimeToBridge, advantages, resources, certifications },
+    analysis: { matchScore, weightedScore, oceanBonus, gapCount, /* ... */ },
+    roadmap: [
       {
-        month: Number,
-        skillsToLearn: [ObjectId],
-        learningResources: [{ title, url, type }],
-        estimatedHoursPerWeek: Number
+        phase: 1 | 2 | 3,
+        title: String,
+        milestoneMonths: String,
+        skills: [
+          {
+            name: String,        // skill text from the career path's phases[].skills
+            status: 'have' | 'missing',  // does the user already possess this skill?
+            completed: Boolean             // has the user checked it off on the roadmap?
+          }
+        ]
       }
     ],
-    startDate: Date,
-    targetCompletionDate: Date
+    progress: {
+      isSaved: Boolean,
+      percentComplete: Number,           // (completed roadmap items) / (total roadmap items) × 100
+      completedSkillCount: Number,
+      totalRequiredSkillCount: Number    // total roadmap items across all phases
+    }
   },
-  message: "Roadmap created successfully"
+  message: "Career brief retrieved"
 }
 ```
 
 ---
 
-### GET /roadmap/:roadmapId
-Get user's roadmap for a career path.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response (200):**
-```js
-{
-  statusCode: 200,
-  data: { /* roadmap object */ },
-  message: "Roadmap fetched successfully"
-}
-```
-
----
-
-### PUT /roadmap/:roadmapId/progress
-Update progress on a roadmap.
-
-**Headers:** `Authorization: Bearer <token>`
+### PATCH /roadmap/:careerPathId/roadmap-items
+Toggle a single roadmap item on or off for the current user. Server treats absence/presence as a toggle — no `completed` flag in the request.
 
 **Request:**
 ```js
 {
-  completedSkills: [ObjectId],
-  personalNotes: String (optional),
-  currentPhase: String (optional)
+  phase: 1 | 2 | 3,    // which phase the item belongs to
+  skillName: String    // the skill text exactly as it appears in career.phases[phase-1].skills
 }
 ```
 
@@ -416,12 +423,30 @@ Update progress on a roadmap.
 {
   statusCode: 200,
   data: {
+    completedRoadmapItems: [ { phase: Number, skillName: String } ],
     percentComplete: Number,
-    completedSkills: [ObjectId],
-    remainingSkills: [ObjectId],
-    estimatedCompletionDate: Date
+    completedSkillCount: Number,        // = completedRoadmapItems.length
+    totalRequiredSkillCount: Number     // total roadmap items across all phases
   },
-  message: "Progress updated"
+  message: "Roadmap item toggled"
+}
+```
+
+**Errors:**
+- `400` — `phase` not 1/2/3, `skillName` empty, or `(phase, skillName)` not present on this career
+- `404` — career path not found
+
+---
+
+### PATCH /roadmap/:careerPathId/skills/:skillId
+**(Legacy)** Toggle a `Skill` ObjectId in `UserProgress.completedSkills`. Kept for backwards compatibility; the per-skill checklist UI uses `roadmap-items` instead. Validates `:skillId` is in `career.requiredSkills`.
+
+**Response (200):**
+```js
+{
+  statusCode: 200,
+  data: { /* full UserProgress doc */ },
+  message: "Skill progress updated"
 }
 ```
 

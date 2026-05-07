@@ -157,33 +157,30 @@
   _id: ObjectId,
   userId: ObjectId (ref: User, required),
   careerPathId: ObjectId (ref: CareerPath, required),
-  
-  // Milestones & completion
-  completedSkills: [
+
+  // Legacy: ObjectIds of mastered Skill documents.
+  // Still written by the older PATCH /roadmap/:careerPathId/skills/:skillId endpoint.
+  completedSkills: [ObjectId (ref: Skill)],
+
+  // Current: per-roadmap-item check state, keyed on (phase, skillName).
+  // Drives the toggleable checklist on the career-brief page.
+  completedRoadmapItems: [
     {
-      skillId: ObjectId (ref: Skill),
-      completedAt: Date,
-      assessmentScore: Number (0-100)
+      phase: Number (1 | 2 | 3, required),
+      skillName: String (required, trimmed)
     }
   ],
-  
-  currentPhase: String (e.g., 'Junior'),
+
+  // Recomputed on every toggle:
+  //   completedRoadmapItems.length / sum(career.phases[].skills.length) * 100
   percentComplete: Number (0-100),
-  
-  // Notes & reflection
-  personalNotes: String,
-  aiSuggestions: [String],
-  
-  // Timeline
-  startDate: Date,
-  targetCompletionDate: Date,
-  estimatedCompletionDate: Date,
-  
+
   createdAt: Date,
-  updatedAt: Date,
-  lastReviewedAt: Date
+  updatedAt: Date
 }
 ```
+
+**Indexes:** unique compound on `(userId, careerPathId)` — one progress doc per user per career.
 
 ---
 

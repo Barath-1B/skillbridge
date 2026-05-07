@@ -6,18 +6,11 @@ const roadmapService = {
     return response.data.data;
   },
 
-  getUserRoadmap: async (careerPathId) => {
-    const response = await api.get(`/roadmap/user/${careerPathId}`);
-    return response.data.data;
-  },
-
-  completePhase: async (roadmapId, phaseIndex) => {
-    const response = await api.put(`/roadmap/${roadmapId}/phase/${phaseIndex}`, { completed: true });
-    return response.data.data;
-  },
-
-  completeSkill: async (roadmapId, skillId) => {
-    const response = await api.put(`/roadmap/${roadmapId}/skill/${skillId}`, { completed: true });
+  toggleRoadmapItem: async (careerPathId, phase, skillName) => {
+    const response = await api.patch(`/roadmap/${careerPathId}/roadmap-items`, {
+      phase,
+      skillName,
+    });
     return response.data.data;
   },
 };

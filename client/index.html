@@ -1,10 +1,23 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>client</title>
+    <meta name="description" content="SkillBridge — Find your gap. Bridge it. A career advisor for CS students and professionals." />
+    <meta name="theme-color" content="#0b0b14" />
+    <title>SkillBridge — Find your gap. Bridge it.</title>
+    <script>
+      // Pre-paint theme to avoid flash on page load
+      (function () {
+        try {
+          var stored = localStorage.getItem('skillbridge-theme') || 'system';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var resolved = stored === 'system' ? (prefersDark ? 'dark' : 'light') : stored;
+          if (resolved === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
