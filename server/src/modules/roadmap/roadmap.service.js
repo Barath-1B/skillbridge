@@ -37,10 +37,14 @@ const _computeAnalysis = (user, career) => {
   );
 };
 
-// Annotate each phase's skill strings with have/missing status.
-// Uses substring matching so "SQL basics" matches user skill "SQL".
-const _annotatePhases = (phases, userSkillNames) => {
+// Annotate each phase's skill strings with have/missing status and completion state.
+// `status` reflects whether the user already possesses the skill (substring match against currentSkills).
+// `completed` reflects whether the user has explicitly checked it off on the roadmap.
+const _annotatePhases = (phases, userSkillNames, completedRoadmapItems = []) => {
   const userLower = new Set(userSkillNames.map(n => n.toLowerCase()));
+  const completedKey = new Set(
+    completedRoadmapItems.map(item => `${item.phase}::${item.skillName.toLowerCase()}`)
+  );
 
   return phases.map(phase => ({
     phase: phase.phase,
@@ -51,21 +55,33 @@ const _annotatePhases = (phases, userSkillNames) => {
       const have =
         userLower.has(lower) ||
         [...userLower].some(s => lower.includes(s) || s.includes(lower));
-      return { name: skillName, status: have ? 'have' : 'missing' };
+      const completed = completedKey.has(`${phase.phase}::${lower}`);
+      return { name: skillName, status: have ? 'have' : 'missing', completed };
     }),
   }));
 };
+
+const _totalRoadmapItems = (career) =>
+  career.phases.reduce((sum, p) => sum + p.skills.length, 0);
 
 const getCareerBrief = async (userId, careerPathId) => {
   const { user, career } = await _getContext(userId, careerPathId);
 
   const analysis = _computeAnalysis(user, career);
+  const progress = await UserProgress.findOne({ userId, careerPathId });
+  const completedRoadmapItems = progress ? progress.completedRoadmapItems : [];
+
   const annotatedPhases = _annotatePhases(
     career.phases,
-    user.currentSkills.map(s => s.name)
+    user.currentSkills.map(s => s.name),
+    completedRoadmapItems
   );
 
-  const progress = await UserProgress.findOne({ userId, careerPathId });
+  const totalRoadmapItems = _totalRoadmapItems(career);
+  const completedRoadmapCount = completedRoadmapItems.length;
+  const percentComplete = totalRoadmapItems > 0
+    ? Math.round((completedRoadmapCount / totalRoadmapItems) * 100)
+    : 0;
 
   return {
     career: {
@@ -84,9 +100,9 @@ const getCareerBrief = async (userId, careerPathId) => {
     roadmap: annotatedPhases,
     progress: {
       isSaved: !!progress,
-      percentComplete: progress ? progress.percentComplete : 0,
-      completedSkillCount: progress ? progress.completedSkills.length : 0,
-      totalRequiredSkillCount: career.requiredSkills.length,
+      percentComplete,
+      completedSkillCount: completedRoadmapCount,
+      totalRequiredSkillCount: totalRoadmapItems,
     },
   };
 };
@@ -165,4 +181,52 @@ const toggleSkill = async (userId, careerPathId, skillId) => {
   return progress.toObject({ versionKey: false });
 };
 
-module.exports = { getCareerBrief, getMyRoadmaps, toggleSkill };
+const toggleRoadmapItem = async (userId, careerPathId, phase, skillName) => {
+  const career = await CareerPath.findById(careerPathId);
+  if (!career) throw new ApiError(404, 'Career path not found');
+
+  const phaseDef = career.phases.find(p => p.phase === phase);
+  if (!phaseDef) throw new ApiError(400, `Phase ${phase} not found on this career path`);
+
+  const matchingName = phaseDef.skills.find(
+    s => s.toLowerCase() === String(skillName).toLowerCase()
+  );
+  if (!matchingName) {
+    throw new ApiError(400, `Skill "${skillName}" is not part of phase ${phase}`);
+  }
+
+  let progress = await UserProgress.findOne({ userId, careerPathId });
+  if (!progress) {
+    progress = new UserProgress({
+      userId,
+      careerPathId,
+      completedSkills: [],
+      completedRoadmapItems: [],
+      percentComplete: 0,
+    });
+  }
+
+  const idx = progress.completedRoadmapItems.findIndex(
+    item => item.phase === phase && item.skillName.toLowerCase() === matchingName.toLowerCase()
+  );
+  if (idx >= 0) {
+    progress.completedRoadmapItems.splice(idx, 1);
+  } else {
+    progress.completedRoadmapItems.push({ phase, skillName: matchingName });
+  }
+
+  const total = _totalRoadmapItems(career);
+  progress.percentComplete = total > 0
+    ? Math.round((progress.completedRoadmapItems.length / total) * 100)
+    : 0;
+
+  await progress.save();
+  return {
+    completedRoadmapItems: progress.completedRoadmapItems,
+    percentComplete: progress.percentComplete,
+    completedSkillCount: progress.completedRoadmapItems.length,
+    totalRequiredSkillCount: total,
+  };
+};
+
+module.exports = { getCareerBrief, getMyRoadmaps, toggleSkill, toggleRoadmapItem };

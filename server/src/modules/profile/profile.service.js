@@ -3,15 +3,24 @@ const Skill = require('../../models/skill.model');
 const ApiError = require('../../utils/ApiError');
 const oceanQuestions = require('../../constants/ocean-questions');
 
-const getProfile = async (userId) => {
-  const user = await User.findById(userId)
-    .populate('currentSkills', 'name category tags')
+const POPULATED_SKILL_FIELDS = 'name category tags';
+
+const findUserPopulated = (userId) =>
+  User.findById(userId)
+    .populate('currentSkills', POPULATED_SKILL_FIELDS)
     .select('-password');
-  if (!user) {
-    throw new ApiError(404, 'User not found');
-  }
+
+const updateUserPopulated = (userId, update) =>
+  User.findByIdAndUpdate(userId, update, { new: true })
+    .populate('currentSkills', POPULATED_SKILL_FIELDS)
+    .select('-password');
+
+const requireUser = (user) => {
+  if (!user) throw new ApiError(404, 'User not found');
   return user.toObject({ versionKey: false });
 };
+
+const getProfile = async (userId) => requireUser(await findUserPopulated(userId));
 
 const updateProfile = async (userId, { experience, skillIds, certifications, interests }) => {
   const updateData = {};
@@ -21,7 +30,6 @@ const updateProfile = async (userId, { experience, skillIds, certifications, int
   }
 
   if (skillIds && skillIds.length > 0) {
-    // Validate that all skill IDs exist
     const skills = await Skill.find({ _id: { $in: skillIds } });
     if (skills.length !== skillIds.length) {
       throw new ApiError(400, 'One or more skill IDs do not exist');
@@ -37,15 +45,37 @@ const updateProfile = async (userId, { experience, skillIds, certifications, int
     updateData.interests = interests;
   }
 
-  const user = await User.findByIdAndUpdate(userId, updateData, { new: true })
-    .populate('currentSkills', 'name category tags')
-    .select('-password');
+  return requireUser(await updateUserPopulated(userId, updateData));
+};
 
-  if (!user) {
-    throw new ApiError(404, 'User not found');
+const updateAccount = async (userId, { name, email, avatarUrl }) => {
+  const updateData = {};
+  if (typeof name === 'string' && name.trim()) updateData.name = name.trim();
+  if (typeof email === 'string' && email.trim()) {
+    const normalized = email.trim().toLowerCase();
+    const conflict = await User.findOne({ email: normalized, _id: { $ne: userId } });
+    if (conflict) {
+      throw new ApiError(409, 'Email already in use');
+    }
+    updateData.email = normalized;
+  }
+  if (typeof avatarUrl === 'string') updateData.avatarUrl = avatarUrl.trim();
+
+  return requireUser(await updateUserPopulated(userId, updateData));
+};
+
+const updateSettings = async (userId, { theme, notificationPreferences }) => {
+  const set = {};
+  if (theme) set.theme = theme;
+  if (notificationPreferences && typeof notificationPreferences === 'object') {
+    for (const [key, value] of Object.entries(notificationPreferences)) {
+      if (typeof value === 'boolean') {
+        set[`notificationPreferences.${key}`] = value;
+      }
+    }
   }
 
-  return user.toObject({ versionKey: false });
+  return requireUser(await updateUserPopulated(userId, { $set: set }));
 };
 
 const getSkills = async (category) => {
@@ -57,12 +87,9 @@ const getSkills = async (category) => {
   return skills.map(s => s.toObject({ versionKey: false }));
 };
 
-const getOceanQuestions = async () => {
-  return oceanQuestions;
-};
+const getOceanQuestions = async () => oceanQuestions;
 
 const computeAndSaveOcean = async (userId, answers) => {
-  // Validate all question IDs exist
   const validQuestionIds = oceanQuestions.map(q => q.id);
   const answerQuestionIds = answers.map(a => a.questionId);
 
@@ -70,13 +97,11 @@ const computeAndSaveOcean = async (userId, answers) => {
     throw new ApiError(400, 'One or more question IDs are invalid');
   }
 
-  // Build a map of questionId -> option for lookup
   const questionMap = {};
   oceanQuestions.forEach(q => {
     questionMap[q.id] = q.options;
   });
 
-  // Compute trait scores
   const traitScores = { O: [], C: [], E: [], A: [], N: [] };
 
   answers.forEach(({ questionId, answer }) => {
@@ -90,7 +115,6 @@ const computeAndSaveOcean = async (userId, answers) => {
     traitScores[selectedOption.trait].push(selectedOption.score);
   });
 
-  // Average scores for each trait (default 50 if no answers for that trait)
   const oceanScore = {};
   Object.keys(traitScores).forEach(trait => {
     const scores = traitScores[trait];
@@ -100,24 +124,14 @@ const computeAndSaveOcean = async (userId, answers) => {
     oceanScore[trait] = Math.round(average);
   });
 
-  const user = await User.findByIdAndUpdate(
-    userId,
-    { oceanScore },
-    { new: true }
-  )
-    .populate('currentSkills', 'name category tags')
-    .select('-password');
-
-  if (!user) {
-    throw new ApiError(404, 'User not found');
-  }
-
-  return user.toObject({ versionKey: false });
+  return requireUser(await updateUserPopulated(userId, { oceanScore }));
 };
 
 module.exports = {
   getProfile,
   updateProfile,
+  updateAccount,
+  updateSettings,
   getSkills,
   getOceanQuestions,
   computeAndSaveOcean,

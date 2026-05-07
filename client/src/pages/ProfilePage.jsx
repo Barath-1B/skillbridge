@@ -1,0 +1,297 @@
+import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Tab } from '@headlessui/react';
+import { Pencil, Calendar, Award, Sparkles, Settings, RotateCcw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import PageContainer from '../components/common/PageContainer';
+import Card from '../components/common/Card';
+import Avatar from '../components/common/Avatar';
+import Button from '../components/common/Button';
+import Badge from '../components/common/Badge';
+import EmptyState from '../components/common/EmptyState';
+import { SkeletonText } from '../components/common/Skeleton';
+import { staggerParent, fadeUp } from '../utils/motion';
+import { EXPERIENCE_LABELS } from '../constants/experience';
+import { OCEAN_TRAITS } from '../constants/ocean';
+
+function TabBtn({ children, selected }) {
+  return (
+    <button
+      type="button"
+      className={[
+        'px-4 py-2 text-sm font-medium rounded-xl transition outline-none',
+        selected
+          ? 'bg-white text-zinc-900 dark:bg-white/10 dark:text-zinc-50 shadow-sm'
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100',
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function ProfilePage() {
+  const { user, loading } = useAuth();
+  const data = user || {};
+  const memberSince = useMemo(() => {
+    if (!data.createdAt) return null;
+    return new Date(data.createdAt).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+    });
+  }, [data.createdAt]);
+
+  const skillsByCategory = useMemo(() => {
+    const skills = Array.isArray(data.currentSkills) ? data.currentSkills : [];
+    const grouped = {};
+    skills.forEach((s) => {
+      const key = s.category || 'other';
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(s);
+    });
+    return grouped;
+  }, [data.currentSkills]);
+
+  return (
+    <PageContainer>
+      {/* Hero banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="relative overflow-hidden rounded-3xl p-6 sm:p-8 mb-6 glass-card-strong"
+      >
+        <div
+          aria-hidden
+          className="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-40 blur-3xl bg-teal-600"
+        />
+        <div
+          aria-hidden
+          className="absolute -bottom-24 -left-12 w-72 h-72 rounded-full opacity-30 blur-3xl bg-teal-700"
+        />
+
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+          <Avatar name={data.name} src={data.avatarUrl} size="2xl" ring />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-50 truncate">
+                {data.name || 'Your profile'}
+              </h1>
+              {data.role === 'admin' && <Badge variant="gradient">Admin</Badge>}
+            </div>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{data.email}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+              {data.experience && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {EXPERIENCE_LABELS[data.experience] || data.experience}
+                </span>
+              )}
+              {memberSince && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/60 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
+                  <Calendar className="w-3.5 h-3.5" />
+                  Joined {memberSince}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex sm:flex-col gap-2">
+            <Link to="/settings/account">
+              <Button variant="secondary" size="sm" leftIcon={<Pencil className="w-4 h-4" />}>
+                Edit profile
+              </Button>
+            </Link>
+            <Link to="/settings">
+              <Button variant="ghost" size="sm" leftIcon={<Settings className="w-4 h-4" />}>
+                Settings
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </motion.div>
+
+      <Tab.Group>
+        <Tab.List className="inline-flex gap-1 p-1 mb-6 rounded-2xl bg-zinc-100/70 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
+          <Tab as="div">{({ selected }) => <TabBtn selected={selected}>Overview</TabBtn>}</Tab>
+          <Tab as="div">{({ selected }) => <TabBtn selected={selected}>Skills</TabBtn>}</Tab>
+          <Tab as="div">{({ selected }) => <TabBtn selected={selected}>Personality</TabBtn>}</Tab>
+        </Tab.List>
+
+        <Tab.Panels>
+          {/* Overview */}
+          <Tab.Panel>
+            {loading ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Skeleton className="h-40" />
+                <Skeleton className="h-40" />
+              </div>
+            ) : (
+              <motion.div
+                variants={staggerParent}
+                initial="hidden"
+                animate="show"
+                className="grid sm:grid-cols-2 gap-4"
+              >
+                <motion.div variants={fadeUp}>
+                  <Card title="Experience" subtitle="Where you are in your journey">
+                    <p className="text-zinc-700 dark:text-zinc-300">
+                      {EXPERIENCE_LABELS[data.experience] || 'Not set'}
+                    </p>
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  <Card title="Interests" subtitle="What excites you">
+                    {Array.isArray(data.interests) && data.interests.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {data.interests.map((i) => (
+                          <Badge key={i} variant="primary">
+                            {i}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">No interests added yet.</p>
+                    )}
+                  </Card>
+                </motion.div>
+
+                <motion.div variants={fadeUp} className="sm:col-span-2">
+                  <Card
+                    title="Certifications"
+                    subtitle="Industry credentials you've earned"
+                    header={
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                            Certifications
+                          </h3>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                            Industry credentials you've earned
+                          </p>
+                        </div>
+                        <Award className="w-5 h-5 text-teal-600" />
+                      </div>
+                    }
+                  >
+                    {Array.isArray(data.certifications) && data.certifications.length > 0 ? (
+                      <ul className="grid sm:grid-cols-2 gap-2">
+                        {data.certifications.map((c) => (
+                          <li
+                            key={c}
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10 text-sm text-zinc-700 dark:text-zinc-200"
+                          >
+                            <Award className="w-4 h-4 text-amber-500" />
+                            {c}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                        No certifications listed yet.
+                      </p>
+                    )}
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+          </Tab.Panel>
+
+          {/* Skills */}
+          <Tab.Panel>
+            {loading ? (
+              <SkeletonText lines={5} />
+            ) : Object.keys(skillsByCategory).length === 0 ? (
+              <EmptyState
+                icon={<Sparkles className="w-6 h-6" />}
+                title="No skills added yet"
+                description="Run the onboarding to tell us what you know — we'll match you to careers that fit."
+                action={
+                  <Link to="/setup/profile">
+                    <Button>Start onboarding</Button>
+                  </Link>
+                }
+              />
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(skillsByCategory).map(([category, list]) => (
+                  <Card key={category}>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold capitalize text-zinc-900 dark:text-zinc-50">
+                        {category}
+                      </h3>
+                      <Link
+                        to="/retake-tests"
+                        className="text-xs font-medium text-teal-700 dark:text-teal-300 hover:underline inline-flex items-center gap-1"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Retake skills test
+                      </Link>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {list.map((s) => (
+                        <Badge key={s._id || s.name} variant="primary">
+                          {s.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Tab.Panel>
+
+          {/* Personality */}
+          <Tab.Panel>
+            {loading ? (
+              <SkeletonText lines={5} />
+            ) : (
+              <Card>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+                      Big Five (OCEAN)
+                    </h3>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                      How you tend to engage with the world.
+                    </p>
+                  </div>
+                  <Link
+                    to="/retake-tests"
+                    className="text-xs font-medium text-teal-700 dark:text-teal-300 hover:underline inline-flex items-center gap-1"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Retake
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {OCEAN_TRAITS.map(({ key, label }) => {
+                    const score = data.oceanScore?.[key] ?? 50;
+                    return (
+                      <div key={key}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="font-medium text-zinc-700 dark:text-zinc-200">{label}</span>
+                          <span className="tabular-nums text-zinc-500 dark:text-zinc-400">{score}</span>
+                        </div>
+                        <div className="w-full h-2 rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${score}%` }}
+                            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                            className="h-full rounded-full bg-teal-600"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+          </Tab.Panel>
+        </Tab.Panels>
+      </Tab.Group>
+    </PageContainer>
+  );
+}

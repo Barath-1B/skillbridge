@@ -25,6 +25,33 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+const updateAccount = async (req, res, next) => {
+  try {
+    const { name, email, avatarUrl } = req.body;
+    const updated = await profileService.updateAccount(req.user.userId, {
+      name,
+      email,
+      avatarUrl,
+    });
+    ApiResponse.ok(res, 'Account updated', updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateSettings = async (req, res, next) => {
+  try {
+    const { theme, notificationPreferences } = req.body;
+    const updated = await profileService.updateSettings(req.user.userId, {
+      theme,
+      notificationPreferences,
+    });
+    ApiResponse.ok(res, 'Settings updated', updated);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getSkills = async (req, res, next) => {
   try {
     const { category } = req.query;
@@ -60,6 +87,8 @@ const submitOcean = async (req, res, next) => {
 module.exports = {
   getProfile,
   updateProfile,
+  updateAccount,
+  updateSettings,
   getSkills,
   getOceanQuestions,
   submitOcean,

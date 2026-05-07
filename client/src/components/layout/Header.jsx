@@ -1,140 +1,169 @@
-/**
- * Header Component
- * Navigation bar with logo, links, and user menu
- * Supports authenticated and guest states
- */
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Menu as MenuIcon, LayoutDashboard, User, Settings, LogOut, ShieldCheck } from 'lucide-react';
+import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
+import MobileDrawer from './MobileDrawer';
+import Avatar from '../common/Avatar';
+import Dropdown, { DropdownItem } from '../common/Dropdown';
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Button from '../common/Button';
+const NAV = [
+  { to: '/dashboard', label: 'Dashboard', auth: true },
+  { to: '/analyze', label: 'Matches', auth: true },
+  { to: '/retake-tests', label: 'Tests', auth: true },
+];
+
+const PUBLIC_NAV = [
+  { to: '/', label: 'Home' },
+  { to: '/login', label: 'Sign in' },
+];
 
 export default function Header({ user, onLogout }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
 
-  const handleLogout = () => {
-    setIsMenuOpen(false);
-    onLogout();
-  };
+  useEffect(() => {
+    const onScroll = () => {
+      const next = window.scrollY > 4;
+      setScrolled((prev) => (prev === next ? prev : next));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
+
+  const navLinks = user ? NAV : PUBLIC_NAV;
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        {/* Logo and brand */}
-        <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">SB</span>
-          </div>
-          <span className="text-xl font-semibold text-gray-900 hidden sm:inline">
-            SkillBridge
-          </span>
-        </Link>
+    <>
+      <header
+        className={[
+          'sticky top-0 z-40 transition-all',
+          scrolled
+            ? 'bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl border-b border-zinc-200/70 dark:border-white/10'
+            : 'bg-transparent border-b border-transparent',
+        ].join(' ')}
+      >
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <Logo />
 
-        {/* Desktop navigation */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link
-            to="/explorer"
-            className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-          >
-            Careers
-          </Link>
-          <Link
-            to="/roadmap"
-            className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-          >
-            Roadmap
-          </Link>
-          <Link
-            to="/about"
-            className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
-          >
-            About
-          </Link>
-        </div>
-
-        {/* User menu */}
-        <div className="flex items-center gap-4">
-          {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  {user.name?.charAt(0).toUpperCase()}
-                </div>
-                <span className="text-sm font-medium text-gray-900 hidden sm:inline">
-                  {user.name}
-                </span>
-              </button>
-
-              {/* Dropdown menu */}
-              {isMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  <Link
-                    to="/dashboard"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100 first:rounded-t-lg"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                  {user.role === 'admin' && (
+            <ul className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => {
+                const active =
+                  link.to === '/'
+                    ? location.pathname === '/'
+                    : location.pathname.startsWith(link.to);
+                return (
+                  <li key={link.to} className="relative">
                     <Link
-                      to="/admin"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsMenuOpen(false)}
+                      to={link.to}
+                      className={[
+                        'relative px-3 py-2 text-sm font-medium transition rounded-lg',
+                        active
+                          ? 'text-zinc-900 dark:text-zinc-50'
+                          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100',
+                      ].join(' ')}
                     >
-                      Admin Panel
+                      {link.label}
+                      {active && (
+                        <motion.span
+                          layoutId="nav-active-underline"
+                          className="absolute left-2 right-2 -bottom-0.5 h-[2px] rounded-full bg-teal-600"
+                          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      )}
                     </Link>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 last:rounded-b-lg border-t border-gray-100"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link to="/login">
-                <Button variant="secondary" size="sm">
-                  Login
-                </Button>
-              </Link>
-              <Link to="/register" className="hidden sm:block">
-                <Button variant="primary" size="sm">
-                  Register
-                </Button>
-              </Link>
-            </div>
-          )}
-        </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
 
-        {/* Mobile menu button */}
-        <button className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors">
-          <svg
-            className="w-6 h-6 text-gray-900"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-        </button>
-      </nav>
-    </header>
+          <div className="flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-1.5">
+              <ThemeToggle />
+            </div>
+
+            {user ? (
+              <Dropdown
+                align="right"
+                button={
+                  <button
+                    type="button"
+                    aria-label="User menu"
+                    className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-zinc-100 dark:hover:bg-white/5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                  >
+                    <Avatar name={user.name} src={user.avatarUrl} size="sm" />
+                    <span className="hidden sm:inline text-sm font-medium text-zinc-800 dark:text-zinc-200 max-w-[120px] truncate">
+                      {user.name?.split(' ')[0]}
+                    </span>
+                  </button>
+                }
+              >
+                <div className="px-3 py-2 border-b border-zinc-200 dark:border-white/10 mb-1">
+                  <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 truncate">{user.name}</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{user.email}</p>
+                </div>
+                <DropdownItem icon={<LayoutDashboard className="w-4 h-4" />} as={Link} to="/dashboard">
+                  Dashboard
+                </DropdownItem>
+                <DropdownItem icon={<User className="w-4 h-4" />} as={Link} to="/profile">
+                  Profile
+                </DropdownItem>
+                <DropdownItem icon={<Settings className="w-4 h-4" />} as={Link} to="/settings">
+                  Settings
+                </DropdownItem>
+                {user.role === 'admin' && (
+                  <DropdownItem icon={<ShieldCheck className="w-4 h-4" />} as={Link} to="/admin">
+                    Admin panel
+                  </DropdownItem>
+                )}
+                <div className="my-1 border-t border-zinc-200 dark:border-white/10" />
+                <DropdownItem icon={<LogOut className="w-4 h-4" />} onClick={onLogout} danger>
+                  Log out
+                </DropdownItem>
+              </Dropdown>
+            ) : (
+              <div className="hidden md:flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="px-3.5 py-2 text-sm font-semibold text-zinc-700 dark:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-white/5 transition"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-3.5 py-2 text-sm font-semibold text-white rounded-lg bg-teal-600 shadow-[var(--shadow-glow)] hover:brightness-110 transition"
+                >
+                  Get started
+                </Link>
+              </div>
+            )}
+
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open menu"
+              className="md:hidden p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            >
+              <MenuIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </nav>
+      </header>
+
+      <MobileDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        user={user}
+        onLogout={onLogout}
+      />
+    </>
   );
 }

@@ -2,6 +2,10 @@
 
 Complete project documentation and guides.
 
+## 🎯 Master Document
+
+- **[Full project idea.md](Full%20project%20idea.md)** — **START HERE** — Complete project concept, architecture methodology, scope, and expected outcomes. Consolidates all project-level information into one comprehensive reference.
+
 ## 📚 Core Documentation
 
 ### Architecture & Design
@@ -20,7 +24,7 @@ Complete project documentation and guides.
 
 ## 🚀 Quick Start
 
-1. **New to the project?** Start with [PROJECT_README.md](PROJECT_README.md)
+1. **New to the project?** Start with [Full project idea.md](Full%20project%20idea.md) for the big picture, then [PROJECT_README.md](PROJECT_README.md) for details
 2. **Want to set up locally?** See [QUICK_START.md](QUICK_START.md)
 3. **Understanding the design?** Read [architecture.md](architecture.md) then [FOLDER_STRUCTURE.md](FOLDER_STRUCTURE.md)
 4. **Building features?** Reference [api-contracts.md](api-contracts.md) and [data-models.md](data-models.md)

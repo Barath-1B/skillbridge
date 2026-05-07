@@ -3,12 +3,12 @@ const { body } = require('express-validator');
 const registerValidators = [
   body('name')
     .trim()
-    .escape() // Prevent XSS
+    .escape()
     .notEmpty()
     .withMessage('Name is required'),
   body('email')
     .trim()
-    .escape() // Prevent XSS
+    .escape()
     .isEmail()
     .withMessage('Invalid email format'),
   body('password')
@@ -20,7 +20,7 @@ const registerValidators = [
 const loginValidators = [
   body('email')
     .trim()
-    .escape() // Prevent XSS
+    .escape()
     .isEmail()
     .withMessage('Invalid email format'),
   body('password')
@@ -29,7 +29,27 @@ const loginValidators = [
     .withMessage('Password is required'),
 ];
 
+const passwordChangeValidators = [
+  body('currentPassword')
+    .trim()
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .trim()
+    .isLength({ min: 6 })
+    .withMessage('New password must be at least 6 characters'),
+];
+
+const deleteAccountValidators = [
+  body('password')
+    .trim()
+    .notEmpty()
+    .withMessage('Password is required to delete account'),
+];
+
 module.exports = {
   registerValidators,
   loginValidators,
+  passwordChangeValidators,
+  deleteAccountValidators,
 };
