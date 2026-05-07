@@ -11,6 +11,15 @@ const oceanScoreSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const notificationPreferencesSchema = new mongoose.Schema(
+  {
+    emailUpdates: { type: Boolean, default: true },
+    productNews: { type: Boolean, default: false },
+    weeklyDigest: { type: Boolean, default: true },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -34,6 +43,20 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    avatarUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'system',
+    },
+    notificationPreferences: {
+      type: notificationPreferencesSchema,
+      default: () => ({}),
+    },
     currentSkills: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -55,6 +78,12 @@ const userSchema = new mongoose.Schema(
     oceanScore: {
       type: oceanScoreSchema,
       default: () => ({}),
+    },
+    lastOceanTestDate: {
+      type: Date,
+    },
+    lastSkillsTestDate: {
+      type: Date,
     },
   },
   { timestamps: true }

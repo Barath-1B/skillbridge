@@ -13,6 +13,7 @@ const analyzerRoutes = require('./modules/analyzer/analyzer.routes');
 const careersRoutes = require('./modules/careers/careers.routes');
 const roadmapRoutes = require('./modules/roadmap/roadmap.routes');
 const adminRoutes = require('./modules/admin/routes');
+const retakeTestsRoutes = require('./modules/retake-tests');
 
 // Validate required environment variables before starting
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'PORT'];
@@ -44,7 +45,7 @@ connectDB().catch(err => {
 });
 
 app.use(cors({
-  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5174'],
+  origin: [process.env.CLIENT_URL || 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -59,6 +60,7 @@ app.use('/api/analyze', analyzerRoutes);
 app.use('/api/careers', careersRoutes);
 app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/retake-tests', retakeTestsRoutes);
 
 app.use(errorHandler);
 

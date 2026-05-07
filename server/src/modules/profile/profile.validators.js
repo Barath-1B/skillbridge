@@ -32,7 +32,43 @@ const oceanValidators = [
     .withMessage('Answer must be A, B, C, or D'),
 ];
 
+const updateAccountValidators = [
+  body('name')
+    .optional()
+    .trim()
+    .escape()
+    .isLength({ min: 1, max: 80 })
+    .withMessage('Name must be 1-80 characters'),
+  body('email')
+    .optional()
+    .trim()
+    .escape()
+    .isEmail()
+    .withMessage('Invalid email format'),
+  body('avatarUrl')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Avatar URL too long'),
+];
+
+const updateSettingsValidators = [
+  body('theme')
+    .optional()
+    .isIn(['light', 'dark', 'system'])
+    .withMessage('Invalid theme'),
+  body('notificationPreferences')
+    .optional()
+    .isObject()
+    .withMessage('notificationPreferences must be an object'),
+  body('notificationPreferences.emailUpdates').optional().isBoolean(),
+  body('notificationPreferences.productNews').optional().isBoolean(),
+  body('notificationPreferences.weeklyDigest').optional().isBoolean(),
+];
+
 module.exports = {
   updateProfileValidators,
   oceanValidators,
+  updateAccountValidators,
+  updateSettingsValidators,
 };
