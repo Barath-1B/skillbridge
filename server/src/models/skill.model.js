@@ -1,5 +1,15 @@
 const mongoose = require('mongoose');
 
+const resourceSchema = new mongoose.Schema(
+  {
+    title:    { type: String, trim: true },
+    url:      { type: String, trim: true },
+    type:     { type: String, enum: ['course', 'book', 'tutorial', 'documentation'] },
+    platform: { type: String, trim: true },
+  },
+  { _id: false }
+);
+
 const skillSchema = new mongoose.Schema(
   {
     name: {
@@ -11,10 +21,22 @@ const skillSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, 'Category is required'],
-      enum: ['skill', 'knowledge', 'certification', 'softSkill'],
+      enum: ['technical-skill', 'knowledge', 'certification', 'soft-skill'],
     },
     tags: {
       type: [String],
+      default: [],
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    difficultyLevel: {
+      type: String,
+      enum: ['beginner', 'intermediate', 'advanced'],
+    },
+    resources: {
+      type: [resourceSchema],
       default: [],
     },
   },
