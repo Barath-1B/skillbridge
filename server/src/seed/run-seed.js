@@ -3,7 +3,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'
 const connectDB = require('../config/db');
 const Skill = require('../models/skill.model');
 const CareerPath = require('../models/career-path.model');
-const skillsData = require('./skills.seed');
+const skillsData = require('./skills-az.seed');
 const careersData = require('./careers.seed');
 
 const seed = async () => {
