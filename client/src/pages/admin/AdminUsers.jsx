@@ -2,7 +2,8 @@ import { useFetch } from '../../hooks/useFetch';
 import { Card, Spinner } from '../../components/common';
 
 export default function AdminUsers() {
-  const { data: users, loading } = useFetch('/api/admin/users');
+  const { data, loading } = useFetch('/api/admin/users');
+  const users = data?.users || [];
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
 

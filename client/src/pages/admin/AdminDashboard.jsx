@@ -10,18 +10,15 @@ export default function AdminDashboard() {
     <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-8">Admin Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <Card title="Total Users">
           <p className="text-4xl font-bold text-blue-600">{stats?.totalUsers || 0}</p>
         </Card>
         <Card title="Total Careers">
-          <p className="text-4xl font-bold text-green-600">{stats?.totalCareers || 0}</p>
+          <p className="text-4xl font-bold text-green-600">{stats?.totalCareerPaths || 0}</p>
         </Card>
         <Card title="Total Skills">
           <p className="text-4xl font-bold text-purple-600">{stats?.totalSkills || 0}</p>
-        </Card>
-        <Card title="Avg Match Score">
-          <p className="text-4xl font-bold text-orange-600">{stats?.avgMatchScore || 0}%</p>
         </Card>
       </div>
 
