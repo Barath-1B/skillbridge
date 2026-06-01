@@ -55,6 +55,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/analyze', analyzerRoutes);
