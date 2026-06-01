@@ -5,6 +5,7 @@ import store from './store/store';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './routes/AdminRoute';
 import AppShell from './components/layout/AppShell';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -18,6 +19,10 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import NotFound from './pages/NotFound';
 import { RetakeTestsPage } from './features/retake-tests';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminCareers from './pages/admin/AdminCareers';
+import AdminSkills from './pages/admin/AdminSkills';
+import AdminUsers from './pages/admin/AdminUsers';
 import { pageTransition } from './utils/motion';
 
 function AnimatedPage({ children }) {
@@ -80,6 +85,22 @@ function AnimatedRoutes() {
         <Route
           path="/settings/:tab"
           element={<ProtectedRoute element={<AnimatedPage><SettingsPage /></AnimatedPage>} />}
+        />
+        <Route
+          path="/admin"
+          element={<AdminRoute element={<AnimatedPage><AdminDashboard /></AnimatedPage>} />}
+        />
+        <Route
+          path="/admin/careers"
+          element={<AdminRoute element={<AnimatedPage><AdminCareers /></AnimatedPage>} />}
+        />
+        <Route
+          path="/admin/skills"
+          element={<AdminRoute element={<AnimatedPage><AdminSkills /></AnimatedPage>} />}
+        />
+        <Route
+          path="/admin/users"
+          element={<AdminRoute element={<AnimatedPage><AdminUsers /></AnimatedPage>} />}
         />
         <Route path="*" element={<AnimatedPage><NotFound /></AnimatedPage>} />
       </Routes>
