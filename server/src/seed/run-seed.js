@@ -7,6 +7,11 @@ const skillsData = require('./skills-az.seed');
 const careersData = require('./careers.seed');
 
 const seed = async () => {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_PROD_SEED !== 'true') {
+    console.error('Refusing to seed in production. Set ALLOW_PROD_SEED=true to override.');
+    process.exit(1);
+  }
+
   await connectDB();
 
   // ── 1. Clear existing data ─────────────────────────────────────────────
