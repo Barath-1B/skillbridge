@@ -2,7 +2,8 @@ import { useFetch } from '../../hooks/useFetch';
 import { Card, Button, Spinner } from '../../components/common';
 
 export default function AdminSkills() {
-  const { data: skills, loading } = useFetch('/api/admin/skills');
+  const { data, loading } = useFetch('/api/admin/skills');
+  const skills = data?.skills || [];
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
 

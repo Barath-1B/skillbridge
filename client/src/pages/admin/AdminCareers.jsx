@@ -2,7 +2,8 @@ import { useFetch } from '../../hooks/useFetch';
 import { Card, Button, Spinner } from '../../components/common';
 
 export default function AdminCareers() {
-  const { data: careers, loading } = useFetch('/api/admin/careers');
+  const { data, loading } = useFetch('/api/admin/careers');
+  const careers = data?.careers || [];
 
   if (loading) return <div className="flex justify-center py-20"><Spinner /></div>;
 
@@ -28,7 +29,7 @@ export default function AdminCareers() {
               <tr key={c._id} className="border-b hover:bg-gray-50">
                 <td className="py-3">{c.title}</td>
                 <td>{c.domain}</td>
-                <td>{c.jobMarketDemand}</td>
+                <td>{c.demand}</td>
                 <td>
                   <Button size="sm" variant="secondary" className="w-auto mr-2">Edit</Button>
                   <Button size="sm" variant="danger" className="w-auto">Delete</Button>
