@@ -12,6 +12,8 @@ const {
   updateSkill,
   deleteSkill,
   listUsers,
+  updateUserRole,
+  deleteUser,
   getAnalytics,
 } = require('./controller');
 
@@ -33,6 +35,8 @@ router.delete('/skills/:id', deleteSkill);
 
 // User Routes
 router.get('/users', listUsers);
+router.put('/users/:id/role', updateUserRole);
+router.delete('/users/:id', deleteUser);
 
 // Analytics Routes
 router.get('/analytics', getAnalytics);

@@ -106,7 +106,7 @@ export default function Footer() {
 
         <div className="pt-6 border-t border-zinc-200/70 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-zinc-500 dark:text-zinc-500">
-            © {year} SkillBridge. Built for the T.I.M.E. PCP-V program.
+            © {year} SkillBridge.
           </p>
           <p className="text-xs text-zinc-500 dark:text-zinc-500">
             Find your gap. <span className="gradient-text font-semibold">Bridge it.</span>

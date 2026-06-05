@@ -108,6 +108,24 @@ const listUsers = async (req, res, next) => {
   }
 };
 
+const updateUserRole = async (req, res, next) => {
+  try {
+    const user = await adminService.updateUserRole(req.params.id, req.body.role);
+    ApiResponse.ok(res, 'User role updated', user);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteUser(req.params.id, req.user.userId);
+    ApiResponse.ok(res, result.message, result);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Analytics Controller
 const getAnalytics = async (req, res, next) => {
   try {
@@ -128,5 +146,7 @@ module.exports = {
   updateSkill,
   deleteSkill,
   listUsers,
+  updateUserRole,
+  deleteUser,
   getAnalytics,
 };

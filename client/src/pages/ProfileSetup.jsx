@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import api from '../api/axios';
+import { skillCategoryLabel } from '../constants/skillCategories';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -236,13 +237,13 @@ export default function ProfileSetup() {
                       type="button"
                       onClick={() => setActiveCategory(cat)}
                       className={[
-                        'px-3 py-1.5 rounded-full text-xs font-medium capitalize transition border',
+                        'px-3 py-1.5 rounded-full text-xs font-medium transition border',
                         active
                           ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white'
                           : 'bg-white dark:bg-white/5 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20',
                       ].join(' ')}
                     >
-                      {cat}
+                      {cat === 'all' ? 'All' : skillCategoryLabel(cat)}
                     </button>
                   );
                 })}

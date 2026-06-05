@@ -1717,4 +1717,135 @@ const careers = [
   },
 ];
 
+// ── Soft-skill requirements ──────────────────────────────────────────────────
+// Every career needs a baseline of human skills; role-specific extras are layered
+// on top. Weights are deliberately modest so technical skills still dominate the
+// match score (the gap engine normalises by total weight). Skill names must match
+// the 'soft-skill' entries in skills-az.seed.js verbatim or the seed runner drops
+// them with a warning.
+const BASELINE_SOFT_SKILLS = [
+  { name: 'Problem Solving', weight: 5, priority: 'medium' },
+  { name: 'Communication', weight: 4, priority: 'medium' },
+  { name: 'Teamwork & Collaboration', weight: 3, priority: 'low' },
+  { name: 'Adaptability', weight: 3, priority: 'low' },
+];
+
+// Per-career-title extras (on top of the baseline).
+const SOFT_SKILLS_BY_TITLE = {
+  'Full Stack Developer': [
+    { name: 'Time Management', weight: 3, priority: 'low' },
+  ],
+  'Data Analyst': [
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'ML Engineer': [
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+  ],
+  'Healthcare Informatics Specialist': [
+    { name: 'Emotional Intelligence', weight: 4, priority: 'medium' },
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'Financial Systems Developer': [
+    { name: 'Attention to Detail', weight: 5, priority: 'medium' },
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+  ],
+  'Cybersecurity Analyst': [
+    { name: 'Attention to Detail', weight: 5, priority: 'high' },
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+  ],
+  'Embedded Systems Developer': [
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'Aerospace Software Engineer': [
+    { name: 'Attention to Detail', weight: 6, priority: 'high' },
+    { name: 'Work Ethic', weight: 4, priority: 'medium' },
+  ],
+  'Frontend Engineer': [
+    { name: 'Creativity', weight: 4, priority: 'medium' },
+  ],
+  'Mobile App Developer': [
+    { name: 'Creativity', weight: 4, priority: 'medium' },
+  ],
+  'DevOps Engineer': [
+    { name: 'Leadership', weight: 3, priority: 'low' },
+  ],
+  'Data Engineer': [
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'Cloud Solutions Architect': [
+    { name: 'Leadership', weight: 5, priority: 'medium' },
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+  ],
+  'QA & Test Automation Engineer': [
+    { name: 'Attention to Detail', weight: 6, priority: 'high' },
+  ],
+  'Game Developer': [
+    { name: 'Creativity', weight: 5, priority: 'medium' },
+  ],
+  'Blockchain/Web3 Developer': [
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+  ],
+  'Database Administrator': [
+    { name: 'Attention to Detail', weight: 5, priority: 'high' },
+  ],
+  'Site Reliability Engineer (SRE)': [
+    { name: 'Leadership', weight: 4, priority: 'medium' },
+    { name: 'Conflict Resolution', weight: 3, priority: 'low' },
+  ],
+  'NLP/Generative AI Engineer': [
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+  ],
+  'Computer Vision Engineer': [
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+  ],
+  'Robotics Engineer': [
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'MLOps Engineer': [
+    { name: 'Critical Thinking', weight: 4, priority: 'medium' },
+  ],
+  'Systems Programmer': [
+    { name: 'Attention to Detail', weight: 5, priority: 'medium' },
+    { name: 'Work Ethic', weight: 3, priority: 'low' },
+  ],
+  'Security Engineer': [
+    { name: 'Attention to Detail', weight: 5, priority: 'high' },
+    { name: 'Critical Thinking', weight: 5, priority: 'medium' },
+  ],
+  'Graphics Programmer': [
+    { name: 'Creativity', weight: 5, priority: 'medium' },
+  ],
+  'AR/VR Developer': [
+    { name: 'Creativity', weight: 5, priority: 'medium' },
+  ],
+  'Network Engineer': [
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+  'Platform Engineer': [
+    { name: 'Leadership', weight: 4, priority: 'medium' },
+    { name: 'Conflict Resolution', weight: 3, priority: 'low' },
+  ],
+  'Competitive Programmer': [
+    { name: 'Critical Thinking', weight: 6, priority: 'high' },
+    { name: 'Time Management', weight: 4, priority: 'medium' },
+  ],
+  'IoT Developer': [
+    { name: 'Attention to Detail', weight: 4, priority: 'medium' },
+  ],
+};
+
+for (const career of careers) {
+  const extras = SOFT_SKILLS_BY_TITLE[career.title] || [];
+  const existing = new Set(career.requiredSkillNames.map((s) => s.name));
+  for (const soft of [...BASELINE_SOFT_SKILLS, ...extras]) {
+    if (!existing.has(soft.name)) {
+      career.requiredSkillNames.push(soft);
+      existing.add(soft.name);
+    }
+  }
+}
+
 module.exports = careers;
