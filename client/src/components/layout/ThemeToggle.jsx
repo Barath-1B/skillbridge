@@ -1,4 +1,4 @@
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import Dropdown, { DropdownItem } from '../common/Dropdown';
 import { THEMES } from '../../constants/theme';
@@ -44,7 +44,10 @@ export default function ThemeToggle({ variant = 'menu' }) {
           icon={item.icon}
           onClick={() => setTheme(item.id)}
         >
-          {item.label}{theme === item.id ? ' ✓' : ''}
+          <span className="inline-flex items-center gap-1.5">
+            {item.label}
+            {theme === item.id && <Check className="w-3.5 h-3.5" />}
+          </span>
         </DropdownItem>
       ))}
     </Dropdown>

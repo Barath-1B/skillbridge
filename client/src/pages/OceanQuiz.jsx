@@ -52,7 +52,6 @@ export default function OceanQuiz() {
     () => Object.values(answers).filter((a) => a !== '').length,
     [answers]
   );
-  const allAnswered = answered === total && total > 0;
   const q = questions[current];
   const currentAnswer = answers[current] || '';
 
@@ -83,8 +82,13 @@ export default function OceanQuiz() {
   };
 
   const handleSubmit = async () => {
-    if (!allAnswered) {
-      setError('Answer every question to continue.');
+    // If anything is unanswered, jump the user to the first gap instead of
+    // silently doing nothing.
+    const firstUnanswered = questions.findIndex((_, idx) => !answers[idx]);
+    if (firstUnanswered !== -1) {
+      cancelAdvance();
+      setCurrent(firstUnanswered);
+      setError(`Please answer question ${firstUnanswered + 1} before continuing.`);
       return;
     }
     setError('');
@@ -219,7 +223,7 @@ export default function OceanQuiz() {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={!allAnswered}
+            disabled={submitting}
             loading={submitting}
             rightIcon={!submitting ? <Sparkles className="w-4 h-4" /> : null}
           >

@@ -21,11 +21,6 @@ const profileService = {
     return response.data.data;
   },
 
-  addCertification: async (certificationData) => {
-    const response = await api.post('/profile/certifications', certificationData);
-    return response.data.data;
-  },
-
   updateOceanScore: async (oceanScore) => {
     const response = await api.put('/profile/ocean', { oceanScore });
     return response.data.data;
