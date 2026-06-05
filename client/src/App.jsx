@@ -1,7 +1,5 @@
-import { Provider } from 'react-redux';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import store from './store/store';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -110,16 +108,14 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <AppShell>
-              <AnimatedRoutes />
-            </AppShell>
-          </BrowserRouter>
-        </ToastProvider>
-      </AuthProvider>
-    </Provider>
+    <AuthProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppShell>
+            <AnimatedRoutes />
+          </AppShell>
+        </BrowserRouter>
+      </ToastProvider>
+    </AuthProvider>
   );
 }

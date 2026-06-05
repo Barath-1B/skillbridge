@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Brain, Briefcase, ClipboardList, ArrowLeft } from 'lucide-react';
 import RetakeOceanTest from './components/RetakeOceanTest';
 import RetakeSkillsTest from './components/RetakeSkillsTest';
 import TestHistory from './components/TestHistory';
@@ -17,7 +18,8 @@ export default function RetakeTestsPage() {
           <p>Update your profile by retaking any onboarding test</p>
         </div>
         <button onClick={() => navigate(-1)} className="back-button">
-          ← Back
+          <ArrowLeft className="w-4 h-4" />
+          Back
         </button>
       </div>
 
@@ -26,21 +28,21 @@ export default function RetakeTestsPage() {
           className={`tab-btn ${activeTab === 'ocean' ? 'active' : ''}`}
           onClick={() => setActiveTab('ocean')}
         >
-          <span className="tab-icon">🧠</span>
+          <span className="tab-icon"><Brain className="w-5 h-5" /></span>
           Personality Test
         </button>
         <button
           className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`}
           onClick={() => setActiveTab('skills')}
         >
-          <span className="tab-icon">💼</span>
+          <span className="tab-icon"><Briefcase className="w-5 h-5" /></span>
           Skills & Experience
         </button>
         <button
           className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
-          <span className="tab-icon">📋</span>
+          <span className="tab-icon"><ClipboardList className="w-5 h-5" /></span>
           Test History
         </button>
       </div>

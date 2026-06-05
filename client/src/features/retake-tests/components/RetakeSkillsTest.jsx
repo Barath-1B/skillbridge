@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 import retakeTestsService from '../../../services/retake-tests.service';
-import profileService from '../../../services/profile/profile.service';
+import { SKILL_CATEGORIES, SKILL_CATEGORY_LABELS } from '../../../constants/skillCategories';
 
 export default function RetakeSkillsTest() {
   const [skills, setSkills] = useState([]);
@@ -8,22 +9,28 @@ export default function RetakeSkillsTest() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-  const [activeCategory, setActiveCategory] = useState('skill');
+  const [messageType, setMessageType] = useState('');
+  const [activeCategory, setActiveCategory] = useState(SKILL_CATEGORIES[0]);
 
   useEffect(() => {
-    fetchSkills();
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await retakeTestsService.getSkills();
+        if (mounted) setSkills(data);
+      } catch {
+        if (mounted) {
+          setMessage('Failed to load skills');
+          setMessageType('error');
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
-
-  const fetchSkills = async () => {
-    try {
-      const data = await retakeTestsService.getSkills();
-      setSkills(data);
-      setLoading(false);
-    } catch (err) {
-      setMessage('Failed to load skills');
-      setLoading(false);
-    }
-  };
 
   const toggleSkill = (skillId) => {
     setSelectedSkills(prev =>
@@ -36,19 +43,22 @@ export default function RetakeSkillsTest() {
   const handleSubmit = async () => {
     if (selectedSkills.length === 0) {
       setMessage('Please select at least one skill');
+      setMessageType('error');
       return;
     }
 
     setSubmitting(true);
     try {
       await retakeTestsService.retakeSkillsTest(selectedSkills);
-      setMessage('✅ Skills updated successfully!');
+      setMessage('Skills updated successfully!');
+      setMessageType('success');
 
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
+      setMessageType('error');
     } finally {
       setSubmitting(false);
     }
@@ -56,13 +66,8 @@ export default function RetakeSkillsTest() {
 
   if (loading) return <div className="loading">Loading skills...</div>;
 
-  const categories = ['skill', 'knowledge', 'certification', 'softSkill'];
-  const categoryLabels = {
-    skill: 'Technical Skills',
-    knowledge: 'Knowledge Areas',
-    certification: 'Certifications',
-    softSkill: 'Soft Skills',
-  };
+  const categories = SKILL_CATEGORIES;
+  const categoryLabels = SKILL_CATEGORY_LABELS;
 
   const filteredSkills = skills.filter(s => s.category === activeCategory);
 
@@ -121,7 +126,10 @@ export default function RetakeSkillsTest() {
       </div>
 
       {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+        <div className={`message ${messageType || 'error'}`}>
+          <span className="message-icon">
+            {messageType === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          </span>
           {message}
         </div>
       )}

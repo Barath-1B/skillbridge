@@ -2,7 +2,7 @@ import api from '../../api/axios';
 
 const adminService = {
   getUsers: async () => {
-    const response = await api.get('/admin/users');
+    const response = await api.get('/admin/users', { params: { limit: 1000 } });
     return response.data.data;
   },
 
@@ -27,7 +27,7 @@ const adminService = {
   },
 
   getCareers: async () => {
-    const response = await api.get('/admin/careers');
+    const response = await api.get('/admin/careers', { params: { limit: 1000 } });
     return response.data.data;
   },
 
@@ -47,7 +47,7 @@ const adminService = {
   },
 
   getSkills: async () => {
-    const response = await api.get('/admin/skills');
+    const response = await api.get('/admin/skills', { params: { limit: 1000 } });
     return response.data.data;
   },
 

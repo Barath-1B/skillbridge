@@ -2,18 +2,21 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tab } from '@headlessui/react';
-import { Pencil, Calendar, Award, Sparkles, Settings, RotateCcw } from 'lucide-react';
+import { Pencil, Calendar, Award, Sparkles, Settings, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import ProgressBar from '../components/common/ProgressBar';
 import EmptyState from '../components/common/EmptyState';
-import { SkeletonText } from '../components/common/Skeleton';
+import Skeleton, { SkeletonText } from '../components/common/Skeleton';
 import { staggerParent, fadeUp } from '../utils/motion';
 import { EXPERIENCE_LABELS } from '../constants/experience';
 import { OCEAN_TRAITS } from '../constants/ocean';
+import { skillCategoryLabel } from '../constants/skillCategories';
+import CertificationsManager from '../components/profile/CertificationsManager';
 
 function TabBtn({ children, selected }) {
   return (
@@ -52,6 +55,17 @@ export default function ProfilePage() {
     });
     return grouped;
   }, [data.currentSkills]);
+
+  const completeness = useMemo(() => {
+    const checks = [
+      { label: 'Experience set', done: Boolean(data.experience) },
+      { label: 'Skills added', done: (data.currentSkills?.length || 0) > 0 },
+      { label: 'Personality test', done: Boolean(data.lastOceanTestDate) },
+      { label: 'Certifications', done: (data.certifications?.length || 0) > 0 },
+    ];
+    const doneCount = checks.filter((c) => c.done).length;
+    return { checks, percent: Math.round((doneCount / checks.length) * 100) };
+  }, [data.experience, data.currentSkills, data.lastOceanTestDate, data.certifications]);
 
   return (
     <PageContainer>
@@ -110,6 +124,42 @@ export default function ProfilePage() {
           </div>
         </div>
       </motion.div>
+
+      {!loading && completeness.percent < 100 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <Card>
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">Profile completeness</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  A fuller profile means sharper career matches.
+                </p>
+              </div>
+              <span className="text-2xl font-bold text-teal-600 tabular-nums">{completeness.percent}%</span>
+            </div>
+            <ProgressBar progress={completeness.percent} showLabel={false} />
+            <div className="flex flex-wrap gap-3 mt-3">
+              {completeness.checks.map((c) => (
+                <span
+                  key={c.label}
+                  className={[
+                    'inline-flex items-center gap-1.5 text-xs',
+                    c.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400',
+                  ].join(' ')}
+                >
+                  {c.done ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                  {c.label}
+                </span>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+      )}
 
       <Tab.Group>
         <Tab.List className="inline-flex gap-1 p-1 mb-6 rounded-2xl bg-zinc-100/70 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
@@ -175,23 +225,7 @@ export default function ProfilePage() {
                       </div>
                     }
                   >
-                    {Array.isArray(data.certifications) && data.certifications.length > 0 ? (
-                      <ul className="grid sm:grid-cols-2 gap-2">
-                        {data.certifications.map((c) => (
-                          <li
-                            key={c}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10 text-sm text-zinc-700 dark:text-zinc-200"
-                          >
-                            <Award className="w-4 h-4 text-amber-500" />
-                            {c}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No certifications listed yet.
-                      </p>
-                    )}
+                    <CertificationsManager />
                   </Card>
                 </motion.div>
               </motion.div>
@@ -218,8 +252,8 @@ export default function ProfilePage() {
                 {Object.entries(skillsByCategory).map(([category, list]) => (
                   <Card key={category}>
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold capitalize text-zinc-900 dark:text-zinc-50">
-                        {category}
+                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
+                        {skillCategoryLabel(category)}
                       </h3>
                       <Link
                         to="/retake-tests"

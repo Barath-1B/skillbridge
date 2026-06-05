@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import retakeTestsService from '../../../services/retake-tests.service';
 
 export default function RetakeOceanTest() {
@@ -7,22 +8,28 @@ export default function RetakeOceanTest() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [currentQuestion, setCurrentQuestion] = useState(0);
 
   useEffect(() => {
-    fetchQuestions();
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await retakeTestsService.getOceanQuestions();
+        if (mounted) setQuestions(data);
+      } catch {
+        if (mounted) {
+          setMessage('Failed to load questions');
+          setMessageType('error');
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
-
-  const fetchQuestions = async () => {
-    try {
-      const data = await retakeTestsService.getOceanQuestions();
-      setQuestions(data);
-      setLoading(false);
-    } catch (err) {
-      setMessage('Failed to load questions');
-      setLoading(false);
-    }
-  };
 
   const handleAnswer = (questionId, answer) => {
     setAnswers(prev => ({
@@ -34,6 +41,7 @@ export default function RetakeOceanTest() {
   const handleSubmit = async () => {
     if (Object.keys(answers).length !== questions.length) {
       setMessage('Please answer all questions');
+      setMessageType('error');
       return;
     }
 
@@ -45,7 +53,8 @@ export default function RetakeOceanTest() {
       }));
 
       await retakeTestsService.retakeOceanTest(answerArray);
-      setMessage('✅ Personality test completed! Your profile has been updated.');
+      setMessage('Personality test completed! Your profile has been updated.');
+      setMessageType('success');
       setAnswers({});
       setCurrentQuestion(0);
 
@@ -54,6 +63,7 @@ export default function RetakeOceanTest() {
       }, 2000);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
+      setMessageType('error');
     } finally {
       setSubmitting(false);
     }
@@ -107,7 +117,8 @@ export default function RetakeOceanTest() {
           onClick={() => setCurrentQuestion(prev => prev - 1)}
           disabled={isFirstQuestion}
         >
-          ← Previous
+          <ArrowLeft className="w-4 h-4" />
+          Previous
         </button>
 
         {!isLastQuestion ? (
@@ -116,7 +127,8 @@ export default function RetakeOceanTest() {
             onClick={() => setCurrentQuestion(prev => prev + 1)}
             disabled={!answers[question?.id]}
           >
-            Next →
+            Next
+            <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
           <button
@@ -130,7 +142,10 @@ export default function RetakeOceanTest() {
       </div>
 
       {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+        <div className={`message ${messageType || 'error'}`}>
+          <span className="message-icon">
+            {messageType === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+          </span>
           {message}
         </div>
       )}

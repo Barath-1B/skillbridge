@@ -3,7 +3,8 @@
  * ─────────────────────────────────────────────────────────────
  * File: server/src/seed/skills-az.seed.js
  *
- * 160 skills · 26 letters · 3 categories
+ * A–Z technical/knowledge skills + a soft-skills set · 4 categories
+ * (technical-skill, knowledge, certification, soft-skill)
  * Run via: npm run seed
  */
 
@@ -1146,6 +1147,129 @@ const skillsAZ = [
     difficultyLevel: 'advanced',
     resources: [
       { title: 'ZooKeeper Documentation', url: 'https://zookeeper.apache.org/doc/current/', type: 'documentation', platform: 'Apache' },
+    ],
+  },
+
+  // ══════════ SOFT SKILLS ══════════
+  // Non-technical competencies surfaced in gap analysis alongside technical skills.
+  {
+    name: 'Communication',
+    category: 'soft-skill',
+    description: 'Clearly conveying ideas in writing and speech: documentation, code reviews, stakeholder updates, and presentations.',
+    tags: ['collaboration', 'writing', 'presentation', 'interpersonal'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Technical Writing — Google Developers', url: 'https://developers.google.com/tech-writing', type: 'course', platform: 'Google' },
+    ],
+  },
+  {
+    name: 'Teamwork & Collaboration',
+    category: 'soft-skill',
+    description: 'Working effectively within cross-functional teams: pairing, code reviews, shared ownership, and constructive feedback.',
+    tags: ['collaboration', 'agile', 'interpersonal'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Working in Teams', url: 'https://www.coursera.org/learn/teamwork-skills-effective-communication', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Leadership',
+    category: 'soft-skill',
+    description: 'Guiding teams and initiatives: setting direction, mentoring, delegating, and driving technical decisions to consensus.',
+    tags: ['management', 'mentorship', 'ownership'],
+    difficultyLevel: 'advanced',
+    resources: [
+      { title: 'The Manager\'s Path', url: 'https://www.oreilly.com/library/view/the-managers-path/9781491973882/', type: 'book', platform: "O'Reilly" },
+    ],
+  },
+  {
+    name: 'Problem Solving',
+    category: 'soft-skill',
+    description: 'Breaking down ambiguous problems, reasoning about trade-offs, and arriving at pragmatic, testable solutions.',
+    tags: ['analysis', 'debugging', 'critical-thinking'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'How to Solve It (Polya)', url: 'https://press.princeton.edu/books/paperback/9780691164076/how-to-solve-it', type: 'book', platform: 'Princeton' },
+    ],
+  },
+  {
+    name: 'Adaptability',
+    category: 'soft-skill',
+    description: 'Staying effective amid changing requirements, new tools, and shifting priorities; learning quickly on the job.',
+    tags: ['growth-mindset', 'learning', 'resilience'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Learning How to Learn', url: 'https://www.coursera.org/learn/learning-how-to-learn', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Time Management',
+    category: 'soft-skill',
+    description: 'Prioritising work, estimating effort, meeting deadlines, and balancing depth against delivery.',
+    tags: ['productivity', 'planning', 'prioritisation'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Getting Things Done', url: 'https://gettingthingsdone.com/', type: 'book', platform: 'GTD' },
+    ],
+  },
+  {
+    name: 'Critical Thinking',
+    category: 'soft-skill',
+    description: 'Evaluating evidence, questioning assumptions, and making reasoned decisions under uncertainty.',
+    tags: ['analysis', 'reasoning', 'decision-making'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Critical Thinking', url: 'https://www.edx.org/learn/critical-thinking-skills', type: 'course', platform: 'edX' },
+    ],
+  },
+  {
+    name: 'Emotional Intelligence',
+    category: 'soft-skill',
+    description: 'Self-awareness and empathy: reading team dynamics, giving and receiving feedback, and managing interpersonal friction.',
+    tags: ['interpersonal', 'empathy', 'self-awareness'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Emotional Intelligence at Work', url: 'https://www.coursera.org/learn/emotional-intelligence-in-leadership', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Conflict Resolution',
+    category: 'soft-skill',
+    description: 'Navigating disagreements constructively: facilitating discussions, finding common ground, and de-escalating tension.',
+    tags: ['interpersonal', 'negotiation', 'teamwork'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Crucial Conversations', url: 'https://cruciallearning.com/crucial-conversations-book/', type: 'book', platform: 'Crucial Learning' },
+    ],
+  },
+  {
+    name: 'Creativity',
+    category: 'soft-skill',
+    description: 'Generating novel ideas and approaches: design thinking, prototyping, and connecting concepts across domains.',
+    tags: ['design-thinking', 'innovation', 'ideation'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Creative Thinking', url: 'https://www.coursera.org/learn/creative-thinking-techniques-and-tools-for-success', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Work Ethic',
+    category: 'soft-skill',
+    description: 'Reliability, accountability, and follow-through: owning outcomes, meeting commitments, and maintaining quality under pressure.',
+    tags: ['reliability', 'ownership', 'professionalism'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Deep Work', url: 'https://www.calnewport.com/books/deep-work/', type: 'book', platform: 'Cal Newport' },
+    ],
+  },
+  {
+    name: 'Attention to Detail',
+    category: 'soft-skill',
+    description: 'Precision in execution: catching edge cases, writing thorough tests, and reviewing work for correctness and consistency.',
+    tags: ['quality', 'testing', 'review'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'The Pragmatic Programmer', url: 'https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/', type: 'book', platform: 'Pragmatic Bookshelf' },
     ],
   },
 ];
