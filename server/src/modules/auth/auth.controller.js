@@ -2,15 +2,22 @@ const ApiResponse = require('../../utils/ApiResponse');
 const authService = require('./auth.service');
 
 const TOKEN_COOKIE = 'token';
+const isProd = process.env.NODE_ENV === 'production';
+// sameSite must be 'none' in production: the client (Vercel) and API (Render)
+// are cross-origin, so 'strict'/'lax' cookies would never be sent on API calls.
 const TOKEN_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: isProd,
+  sameSite: isProd ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 const setAuthCookie = (res, token) => res.cookie(TOKEN_COOKIE, token, TOKEN_COOKIE_OPTIONS);
-const clearAuthCookie = (res) => res.clearCookie(TOKEN_COOKIE);
+// clearCookie must match the set options (minus maxAge) or browsers keep the cookie.
+const clearAuthCookie = (res) => {
+  const { maxAge: _maxAge, ...opts } = TOKEN_COOKIE_OPTIONS;
+  return res.clearCookie(TOKEN_COOKIE, opts);
+};
 
 const register = async (req, res, next) => {
   try {
