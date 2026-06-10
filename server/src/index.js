@@ -18,6 +18,11 @@ const retakeTestsRoutes = require('./modules/retake-tests');
 
 // Validate required environment variables before starting
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'PORT'];
+if (process.env.NODE_ENV === 'production') {
+  // CLIENT_URL feeds the CORS origin; without it production silently falls
+  // back to localhost and every browser request gets CORS-blocked.
+  requiredEnvVars.push('CLIENT_URL');
+}
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
 if (missingEnvVars.length > 0) {
   console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
@@ -26,14 +31,20 @@ if (missingEnvVars.length > 0) {
 
 const app = express();
 
+// Render (and most PaaS) terminate TLS at a reverse proxy. Without this,
+// express-rate-limit rejects the X-Forwarded-For header and keys every
+// request to the proxy's IP — one shared rate bucket for all users.
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet()); // Set security HTTP headers
 app.use(compression()); // Compress JSON responses
 
-// Global rate limiter: 100 requests per 15 minutes
+// Global rate limiter: 400 requests per 15 minutes
+// (the SPA fires several API calls per page view; 100 was exhausted by one active user)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 400, // limit each IP to 400 requests per windowMs
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
