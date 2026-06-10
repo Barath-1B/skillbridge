@@ -34,9 +34,13 @@ export default function Header({ user, onLogout }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
+  // Close the drawer on navigation (render-time adjustment instead of an
+  // effect, per React docs).
+  const [prevPath, setPrevPath] = useState(location.pathname);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
     setDrawerOpen(false);
-  }, [location.pathname]);
+  }
 
   const navLinks = user ? NAV : PUBLIC_NAV;
 
