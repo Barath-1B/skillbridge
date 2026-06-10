@@ -124,7 +124,9 @@ const computeAndSaveOcean = async (userId, answers) => {
     oceanScore[trait] = Math.round(average);
   });
 
-  return requireUser(await updateUserPopulated(userId, { oceanScore }));
+  return requireUser(
+    await updateUserPopulated(userId, { oceanScore, lastOceanTestDate: new Date() })
+  );
 };
 
 module.exports = {

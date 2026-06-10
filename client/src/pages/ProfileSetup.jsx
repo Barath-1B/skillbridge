@@ -12,6 +12,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import { skillCategoryLabel } from '../constants/skillCategories';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
@@ -35,6 +36,7 @@ const EXPERIENCE_OPTIONS = BASE_EXPERIENCE_OPTIONS.map((opt) => ({
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [step, setStep] = useState(1);
   const [experience, setExperience] = useState('');
   const [skillIds, setSkillIds] = useState([]);
@@ -106,6 +108,7 @@ export default function ProfileSetup() {
     setSaving(true);
     try {
       await api.put('/profile', { experience, skillIds });
+      await refreshUser();
       navigate('/setup/ocean');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save profile');
