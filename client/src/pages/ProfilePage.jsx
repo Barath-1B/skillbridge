@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tab } from '@headlessui/react';
@@ -35,8 +35,20 @@ function TabBtn({ children, selected }) {
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const data = user || {};
+
+  // Pull fresh profile data on mount so the page reflects the DB (the cached
+  // auth user can be stale after onboarding saves).
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (mounted) await refreshUser();
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [refreshUser]);
   const memberSince = useMemo(() => {
     if (!data.createdAt) return null;
     return new Date(data.createdAt).toLocaleDateString(undefined, {
@@ -57,15 +69,16 @@ export default function ProfilePage() {
   }, [data.currentSkills]);
 
   const completeness = useMemo(() => {
+    // The three core onboarding steps. Certifications are optional and tracked
+    // separately, so they don't gate completion.
     const checks = [
       { label: 'Experience set', done: Boolean(data.experience) },
       { label: 'Skills added', done: (data.currentSkills?.length || 0) > 0 },
       { label: 'Personality test', done: Boolean(data.lastOceanTestDate) },
-      { label: 'Certifications', done: (data.certifications?.length || 0) > 0 },
     ];
     const doneCount = checks.filter((c) => c.done).length;
     return { checks, percent: Math.round((doneCount / checks.length) * 100) };
-  }, [data.experience, data.currentSkills, data.lastOceanTestDate, data.certifications]);
+  }, [data.experience, data.currentSkills, data.lastOceanTestDate]);
 
   return (
     <PageContainer>

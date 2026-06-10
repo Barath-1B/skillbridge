@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, AlertCircle, Sparkles, Check } from 'lucide-react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -10,6 +11,7 @@ import Skeleton from '../components/common/Skeleton';
 
 export default function OceanQuiz() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [current, setCurrent] = useState(0);
@@ -99,6 +101,7 @@ export default function OceanQuiz() {
         answer: answers[idx],
       }));
       await api.post('/profile/ocean', { answers: answerArray });
+      await refreshUser();
       navigate('/analyze');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save answers');
