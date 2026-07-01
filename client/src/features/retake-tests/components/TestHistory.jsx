@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Brain, Briefcase, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Brain, Compass, Briefcase, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
 import retakeTestsService from '../../../services/retake-tests.service';
 
 export default function TestHistory() {
@@ -76,6 +76,13 @@ export default function TestHistory() {
           <h3>Personality Test (OCEAN)</h3>
           <p className="date">{formatDate(history?.lastOceanTestDate)}</p>
           <p className="description">Your Big Five personality traits</p>
+        </div>
+
+        <div className="history-card">
+          <div className="card-icon"><Compass className="w-8 h-8" /></div>
+          <h3>Personality Test (MBTI)</h3>
+          <p className="date">{formatDate(history?.lastMbtiTestDate)}</p>
+          <p className="description">Your Myers-Briggs type</p>
         </div>
 
         <div className="history-card">

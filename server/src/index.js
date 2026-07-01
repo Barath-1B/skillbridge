@@ -14,7 +14,7 @@ const analyzerRoutes = require('./modules/analyzer/analyzer.routes');
 const careersRoutes = require('./modules/careers/careers.routes');
 const roadmapRoutes = require('./modules/roadmap/roadmap.routes');
 const adminRoutes = require('./modules/admin/routes');
-const retakeTestsRoutes = require('./modules/retake-tests');
+const retakeTestsRoutes = require('./modules/retake-tests/retake-tests.routes');
 
 // Validate required environment variables before starting
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'PORT'];

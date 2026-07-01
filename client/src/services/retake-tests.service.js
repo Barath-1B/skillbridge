@@ -6,6 +6,11 @@ const retakeTestsService = {
     return response.data.data;
   },
 
+  retakeMbtiTest: async (answers) => {
+    const response = await api.post('/retake-tests/mbti', { answers });
+    return response.data.data;
+  },
+
   retakeSkillsTest: async (skillIds) => {
     const response = await api.post('/retake-tests/skills', { skillIds });
     return response.data.data;
@@ -23,6 +28,11 @@ const retakeTestsService = {
 
   getOceanQuestions: async () => {
     const response = await api.get('/profile/ocean/questions');
+    return response.data.data;
+  },
+
+  getMbtiQuestions: async () => {
+    const response = await api.get('/profile/mbti/questions');
     return response.data.data;
   },
 
