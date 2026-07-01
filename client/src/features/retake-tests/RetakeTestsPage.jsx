@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Briefcase, ClipboardList, ArrowLeft } from 'lucide-react';
+import { Brain, Compass, Briefcase, ClipboardList, ArrowLeft } from 'lucide-react';
 import RetakeOceanTest from './components/RetakeOceanTest';
+import RetakeMbtiTest from './components/RetakeMbtiTest';
 import RetakeSkillsTest from './components/RetakeSkillsTest';
 import TestHistory from './components/TestHistory';
 import './retake-tests.css';
@@ -29,7 +30,14 @@ export default function RetakeTestsPage() {
           onClick={() => setActiveTab('ocean')}
         >
           <span className="tab-icon"><Brain className="w-5 h-5" /></span>
-          Personality Test
+          Personality (OCEAN)
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'mbti' ? 'active' : ''}`}
+          onClick={() => setActiveTab('mbti')}
+        >
+          <span className="tab-icon"><Compass className="w-5 h-5" /></span>
+          Personality (MBTI)
         </button>
         <button
           className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`}
@@ -49,6 +57,7 @@ export default function RetakeTestsPage() {
 
       <div className="retake-content">
         {activeTab === 'ocean' && <RetakeOceanTest />}
+        {activeTab === 'mbti' && <RetakeMbtiTest />}
         {activeTab === 'skills' && <RetakeSkillsTest />}
         {activeTab === 'history' && <TestHistory />}
       </div>

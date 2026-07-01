@@ -32,6 +32,18 @@ const oceanValidators = [
     .withMessage('Answer must be A, B, C, or D'),
 ];
 
+const mbtiValidators = [
+  body('answers')
+    .isArray({ min: 32, max: 32 })
+    .withMessage('Must provide exactly 32 answers'),
+  body('answers.*.questionId')
+    .isInt({ min: 1, max: 32 })
+    .withMessage('Invalid questionId'),
+  body('answers.*.answer')
+    .isIn(['A', 'B'])
+    .withMessage('Answer must be A or B'),
+];
+
 const updateAccountValidators = [
   body('name')
     .optional()
@@ -69,6 +81,7 @@ const updateSettingsValidators = [
 module.exports = {
   updateProfileValidators,
   oceanValidators,
+  mbtiValidators,
   updateAccountValidators,
   updateSettingsValidators,
 };
