@@ -22,10 +22,10 @@ const updateProfileValidators = [
 
 const oceanValidators = [
   body('answers')
-    .isArray({ min: 12, max: 12 })
-    .withMessage('Must provide exactly 12 answers'),
+    .isArray({ min: 32, max: 32 })
+    .withMessage('Must provide exactly 32 answers'),
   body('answers.*.questionId')
-    .isInt({ min: 1, max: 12 })
+    .isInt({ min: 1, max: 32 })
     .withMessage('Invalid questionId'),
   body('answers.*.answer')
     .isIn(['A', 'B', 'C', 'D'])
