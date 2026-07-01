@@ -15,6 +15,7 @@ import Skeleton, { SkeletonText } from '../components/common/Skeleton';
 import { staggerParent, fadeUp } from '../utils/motion';
 import { EXPERIENCE_LABELS } from '../constants/experience';
 import { OCEAN_TRAITS } from '../constants/ocean';
+import { MBTI_TYPES, MBTI_DIMENSIONS } from '../constants/mbti';
 import { skillCategoryLabel } from '../constants/skillCategories';
 import CertificationsManager from '../components/profile/CertificationsManager';
 
@@ -294,7 +295,9 @@ export default function ProfilePage() {
             {loading ? (
               <SkeletonText lines={5} />
             ) : (
-              <Card>
+              <div className="space-y-4">
+                <MbtiCard mbtiType={data.mbtiType} mbtiScores={data.mbtiScores} />
+                <Card>
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
@@ -334,11 +337,97 @@ export default function ProfilePage() {
                     );
                   })}
                 </div>
-              </Card>
+                </Card>
+              </div>
             )}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
     </PageContainer>
+  );
+}
+
+function MbtiCard({ mbtiType, mbtiScores }) {
+  if (!mbtiType) {
+    return (
+      <Card>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+              Myers-Briggs (MBTI)
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Discover your 4-letter type. Takes about 5 minutes.
+            </p>
+          </div>
+          <Link to="/quiz/mbti">
+            <Button leftIcon={<Sparkles className="w-4 h-4" />}>Take MBTI test</Button>
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  const type = MBTI_TYPES[mbtiType];
+  const scores = mbtiScores || {};
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            Myers-Briggs (MBTI)
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Display only — does not affect your match scores.
+          </p>
+        </div>
+        <Link
+          to="/quiz/mbti"
+          className="text-xs font-medium text-teal-700 dark:text-teal-300 hover:underline inline-flex items-center gap-1"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Retake
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-4 mb-5">
+        <div className="w-20 h-20 shrink-0 rounded-2xl grid place-items-center bg-linear-to-br from-teal-500 to-teal-700 text-white">
+          <span className="text-2xl font-bold tracking-wide">{mbtiType}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-zinc-900 dark:text-zinc-50">{type?.epithet || mbtiType}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{type?.description}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {MBTI_DIMENSIONS.map(({ pair, labels }) => {
+          const [first, second] = pair;
+          const firstPct = scores[first] ?? 50;
+          const dominant = firstPct >= 50 ? first : second;
+          return (
+            <div key={pair.join('')}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className={dominant === first ? 'font-semibold text-teal-700 dark:text-teal-300' : 'text-zinc-500 dark:text-zinc-400'}>
+                  {labels[first]} {scores[first] ?? 50}%
+                </span>
+                <span className={dominant === second ? 'font-semibold text-teal-700 dark:text-teal-300' : 'text-zinc-500 dark:text-zinc-400'}>
+                  {scores[second] ?? 50}% {labels[second]}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${firstPct}%` }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-full rounded-full bg-teal-600"
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }

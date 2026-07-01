@@ -11,6 +11,22 @@ const oceanScoreSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// MBTI dimension percentages — each pair (E/I, S/N, T/F, J/P) sums to 100.
+// Display-only: never feeds the gap engine or match scores.
+const mbtiScoresSchema = new mongoose.Schema(
+  {
+    E: { type: Number, default: 0, min: 0, max: 100 },
+    I: { type: Number, default: 0, min: 0, max: 100 },
+    S: { type: Number, default: 0, min: 0, max: 100 },
+    N: { type: Number, default: 0, min: 0, max: 100 },
+    T: { type: Number, default: 0, min: 0, max: 100 },
+    F: { type: Number, default: 0, min: 0, max: 100 },
+    J: { type: Number, default: 0, min: 0, max: 100 },
+    P: { type: Number, default: 0, min: 0, max: 100 },
+  },
+  { _id: false }
+);
+
 const notificationPreferencesSchema = new mongoose.Schema(
   {
     emailUpdates: { type: Boolean, default: true },
@@ -83,6 +99,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
     },
     lastSkillsTestDate: {
+      type: Date,
+    },
+    mbtiType: {
+      type: String,
+      default: null,
+      maxlength: 4,
+    },
+    mbtiScores: {
+      type: mbtiScoresSchema,
+      default: () => ({}),
+    },
+    lastMbtiTestDate: {
       type: Date,
     },
   },

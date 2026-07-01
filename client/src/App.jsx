@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import CareerBrief from './pages/CareerBrief';
 import ProfileSetup from './pages/ProfileSetup';
 import OceanQuiz from './pages/OceanQuiz';
+import MbtiQuiz from './pages/MbtiQuiz';
 import AnalyzerResults from './pages/AnalyzerResults';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
@@ -51,6 +52,10 @@ function AnimatedRoutes() {
         <Route
           path="/setup/ocean"
           element={<ProtectedRoute element={<AnimatedPage><OceanQuiz /></AnimatedPage>} />}
+        />
+        <Route
+          path="/quiz/mbti"
+          element={<ProtectedRoute element={<AnimatedPage><MbtiQuiz /></AnimatedPage>} />}
         />
         <Route
           path="/analyze"

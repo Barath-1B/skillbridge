@@ -2,49 +2,33 @@ const User = require('../../models/user.model');
 const Skill = require('../../models/skill.model');
 const ApiError = require('../../utils/ApiError');
 const oceanQuestions = require('../../constants/ocean-questions');
+const mbtiQuestions = require('../../constants/mbti-questions');
+const { computeOceanScores, computeMbtiResult } = require('../../utils/personality-scoring');
 
 const retakeOceanTest = async (userId, answers) => {
-  // Validate all question IDs exist
-  const validQuestionIds = oceanQuestions.map(q => q.id);
-  const answerQuestionIds = answers.map(a => a.questionId);
-
-  if (!answerQuestionIds.every(id => validQuestionIds.includes(id))) {
-    throw new ApiError(400, 'One or more question IDs are invalid');
-  }
-
-  // Build a map of questionId -> option for lookup
-  const questionMap = {};
-  oceanQuestions.forEach(q => {
-    questionMap[q.id] = q.options;
-  });
-
-  // Compute trait scores
-  const traitScores = { O: [], C: [], E: [], A: [], N: [] };
-
-  answers.forEach(({ questionId, answer }) => {
-    const options = questionMap[questionId];
-    const selectedOption = options.find(opt => opt.value === answer);
-
-    if (!selectedOption) {
-      throw new ApiError(400, `Invalid answer for question ${questionId}`);
-    }
-
-    traitScores[selectedOption.trait].push(selectedOption.score);
-  });
-
-  // Average scores for each trait
-  const oceanScore = {};
-  Object.keys(traitScores).forEach(trait => {
-    const scores = traitScores[trait];
-    const average = scores.length > 0
-      ? scores.reduce((a, b) => a + b, 0) / scores.length
-      : 50;
-    oceanScore[trait] = Math.round(average);
-  });
+  const oceanScore = computeOceanScores(oceanQuestions, answers);
 
   const user = await User.findByIdAndUpdate(
     userId,
     { oceanScore, lastOceanTestDate: new Date() },
+    { new: true }
+  )
+    .populate('currentSkills', 'name category tags')
+    .select('-password');
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  return user.toObject({ versionKey: false });
+};
+
+const retakeMbtiTest = async (userId, answers) => {
+  const { mbtiType, mbtiScores } = computeMbtiResult(mbtiQuestions, answers);
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { mbtiType, mbtiScores, lastMbtiTestDate: new Date() },
     { new: true }
   )
     .populate('currentSkills', 'name category tags')
@@ -81,7 +65,7 @@ const retakeSkillsTest = async (userId, skillIds) => {
 
 const getTestHistory = async (userId) => {
   const user = await User.findById(userId)
-    .select('lastOceanTestDate lastSkillsTestDate createdAt');
+    .select('lastOceanTestDate lastSkillsTestDate lastMbtiTestDate createdAt');
 
   if (!user) {
     throw new ApiError(404, 'User not found');
@@ -91,6 +75,8 @@ const getTestHistory = async (userId) => {
     profileCreatedAt: user.createdAt,
     lastOceanTestDate: user.lastOceanTestDate || user.createdAt,
     lastSkillsTestDate: user.lastSkillsTestDate || user.createdAt,
+    // MBTI is optional — null means "never taken", not profile creation.
+    lastMbtiTestDate: user.lastMbtiTestDate || null,
   };
 };
 
@@ -105,6 +91,9 @@ const resetAllOnboarding = async (userId) => {
       oceanScore: {},
       lastOceanTestDate: null,
       lastSkillsTestDate: null,
+      mbtiType: null,
+      mbtiScores: {},
+      lastMbtiTestDate: null,
     },
     { new: true }
   )
@@ -120,6 +109,7 @@ const resetAllOnboarding = async (userId) => {
 
 module.exports = {
   retakeOceanTest,
+  retakeMbtiTest,
   retakeSkillsTest,
   getTestHistory,
   resetAllOnboarding,

@@ -14,6 +14,19 @@ const retakeOceanTest = async (req, res, next) => {
   }
 };
 
+const retakeMbtiTest = async (req, res, next) => {
+  try {
+    const { answers } = req.body;
+    const updatedProfile = await retakeTestsService.retakeMbtiTest(
+      req.user.userId,
+      answers
+    );
+    ApiResponse.ok(res, 'MBTI test retaken and result updated', updatedProfile);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const retakeSkillsTest = async (req, res, next) => {
   try {
     const { skillIds } = req.body;
@@ -47,6 +60,7 @@ const resetAllOnboarding = async (req, res, next) => {
 
 module.exports = {
   retakeOceanTest,
+  retakeMbtiTest,
   retakeSkillsTest,
   getTestHistory,
   resetAllOnboarding,
