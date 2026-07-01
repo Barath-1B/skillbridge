@@ -96,8 +96,8 @@ export default function OceanQuiz() {
     setError('');
     setSubmitting(true);
     try {
-      const answerArray = questions.map((_, idx) => ({
-        questionId: idx + 1,
+      const answerArray = questions.map((question, idx) => ({
+        questionId: question.id,
         answer: answers[idx],
       }));
       await api.post('/profile/ocean', { answers: answerArray });

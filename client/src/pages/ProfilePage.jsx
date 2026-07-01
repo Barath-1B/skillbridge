@@ -14,7 +14,7 @@ import EmptyState from '../components/common/EmptyState';
 import Skeleton, { SkeletonText } from '../components/common/Skeleton';
 import { staggerParent, fadeUp } from '../utils/motion';
 import { EXPERIENCE_LABELS } from '../constants/experience';
-import { OCEAN_TRAITS } from '../constants/ocean';
+import { OCEAN_TRAITS, oceanTier } from '../constants/ocean';
 import { MBTI_TYPES, MBTI_DIMENSIONS } from '../constants/mbti';
 import { skillCategoryLabel } from '../constants/skillCategories';
 import CertificationsManager from '../components/profile/CertificationsManager';
@@ -317,13 +317,16 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {OCEAN_TRAITS.map(({ key, label }) => {
+                  {OCEAN_TRAITS.map(({ key, label, description }) => {
                     const score = data.oceanScore?.[key] ?? 50;
                     return (
                       <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-zinc-700 dark:text-zinc-200">{label}</span>
-                          <span className="tabular-nums text-zinc-500 dark:text-zinc-400">{score}</span>
+                        <div className="flex justify-between items-baseline text-sm mb-1">
+                          <span className="font-medium text-zinc-700 dark:text-zinc-200" title={description}>{label}</span>
+                          <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
+                            <span className="text-teal-700 dark:text-teal-300 font-medium">{oceanTier(score)}</span>
+                            {' · '}{score}
+                          </span>
                         </div>
                         <div className="w-full h-2 rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
                           <motion.div
