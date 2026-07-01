@@ -1,13 +1,16 @@
 const CareerPath = require('../../models/career-path.model');
 const UserProgress = require('../../models/user-progress.model');
 const User = require('../../models/user.model');
+const Skill = require('../../models/skill.model');
 const ApiError = require('../../utils/ApiError');
-const { analyzeCareerPath } = require('../../utils/gap-engine');
+const { analyzeCareerPath, DIFFICULTY_HOURS } = require('../../utils/gap-engine');
+
+const SKILL_FIELDS = 'name category relatedSkills difficultyLevel learningHours';
 
 const _getContext = async (userId, careerPathId) => {
   const [user, career] = await Promise.all([
-    User.findById(userId).populate('currentSkills', 'name category').select('-password'),
-    CareerPath.findById(careerPathId).populate('requiredSkills.skillId', 'name category tags'),
+    User.findById(userId).populate('currentSkills', SKILL_FIELDS).select('-password'),
+    CareerPath.findById(careerPathId).populate('requiredSkills.skillId', SKILL_FIELDS),
   ]);
 
   if (!user) throw new ApiError(404, 'User not found');
@@ -16,9 +19,16 @@ const _getContext = async (userId, careerPathId) => {
   return { user, career };
 };
 
-const _computeAnalysis = (user, career) => {
-  const userSkillIdSet = new Set(user.currentSkills.map(s => s._id.toString()));
+const _buildUserProfile = (user) => ({
+  skillIdSet: new Set(user.currentSkills.map(s => s._id.toString())),
+  skillNameSet: new Set(user.currentSkills.map(s => s.name.toLowerCase())),
+  certifications: user.certifications || [],
+  ocean: user.oceanScore || {},
+  experience: user.experience,
+  interests: user.interests || [],
+});
 
+const _computeAnalysis = (user, career) => {
   const requiredSkills = career.requiredSkills
     .filter(rs => rs.skillId)
     .map(rs => ({
@@ -27,38 +37,89 @@ const _computeAnalysis = (user, career) => {
       category: rs.skillId.category,
       weight: rs.weight,
       priority: rs.priority,
+      relatedSkills: rs.skillId.relatedSkills || [],
     }));
 
-  return analyzeCareerPath(
-    userSkillIdSet,
-    user.certifications,
-    user.oceanScore,
-    { domain: career.domain, requiredSkills, requiredCerts: career.certifications }
-  );
+  return analyzeCareerPath(_buildUserProfile(user), {
+    domain: career.domain,
+    title: career.title,
+    difficulty: career.difficulty,
+    demand: career.demand,
+    requiredSkills,
+    requiredCerts: career.certifications,
+  });
 };
 
-// Annotate each phase's skill strings with have/missing status and completion state.
-// `status` reflects whether the user already possesses the skill (substring match against currentSkills).
-// `completed` reflects whether the user has explicitly checked it off on the roadmap.
-const _annotatePhases = (phases, userSkillNames, completedRoadmapItems = []) => {
-  const userLower = new Set(userSkillNames.map(n => n.toLowerCase()));
+// Look up the Skill docs behind each phase's skill-name strings so the roadmap
+// can reuse the same adjacency/effort data the engine uses. Returns a
+// lowercased-name → skill map.
+const _resolveSkillMap = async (phases) => {
+  const names = [...new Set(phases.flatMap(p => p.skills))];
+  const skills = await Skill.find({ name: { $in: names } }).select(SKILL_FIELDS);
+  const map = new Map();
+  skills.forEach(s => map.set(s.name.toLowerCase(), s));
+  return map;
+};
+
+const _effortHours = (skill) => {
+  if (!skill) return null;
+  if (typeof skill.learningHours === 'number') return skill.learningHours;
+  return DIFFICULTY_HOURS[skill.difficultyLevel] || null;
+};
+
+// Annotate each phase's skills with have/partial/missing status, effort, and
+// prerequisite flags — consistent with the engine's adjacency logic.
+const _annotatePhases = (phases, userProfile, completedRoadmapItems = [], skillMap) => {
+  const userLower = userProfile.skillNameSet;
   const completedKey = new Set(
     completedRoadmapItems.map(item => `${item.phase}::${item.skillName.toLowerCase()}`)
   );
 
-  return phases.map(phase => ({
-    phase: phase.phase,
-    title: phase.title,
-    milestoneMonths: phase.milestoneMonths,
-    skills: phase.skills.map(skillName => {
-      const lower = skillName.toLowerCase();
-      const have =
-        userLower.has(lower) ||
-        [...userLower].some(s => lower.includes(s) || s.includes(lower));
-      const completed = completedKey.has(`${phase.phase}::${lower}`);
-      return { name: skillName, status: have ? 'have' : 'missing', completed };
-    }),
-  }));
+  // Names appearing in earlier phases, for foundation/prerequisite detection.
+  const seenEarlier = new Set();
+
+  return phases.map(phase => {
+    const annotated = {
+      phase: phase.phase,
+      title: phase.title,
+      milestoneMonths: phase.milestoneMonths,
+      skills: phase.skills.map(skillName => {
+        const lower = skillName.toLowerCase();
+        const skill = skillMap.get(lower);
+        const related = skill ? skill.relatedSkills || [] : [];
+
+        let status = 'missing';
+        let via = null;
+        if (userLower.has(lower)) {
+          status = 'have';
+        } else {
+          const adj = related.find(r => userLower.has(r.name.toLowerCase()));
+          if (adj) { status = 'partial'; via = adj.name; }
+        }
+
+        // Foundation flag: this skill relates to an earlier-phase skill the
+        // user doesn't yet hold — learn that first.
+        let needsFoundation = null;
+        if (status !== 'have') {
+          const found = related.find(
+            r => seenEarlier.has(r.name.toLowerCase()) && !userLower.has(r.name.toLowerCase())
+          );
+          if (found) needsFoundation = found.name;
+        }
+
+        return {
+          name: skillName,
+          status,
+          via,
+          needsFoundation,
+          effortHours: _effortHours(skill),
+          completed: completedKey.has(`${phase.phase}::${lower}`),
+        };
+      }),
+    };
+    phase.skills.forEach(s => seenEarlier.add(s.toLowerCase()));
+    return annotated;
+  });
 };
 
 const _totalRoadmapItems = (career) =>
@@ -71,10 +132,12 @@ const getCareerBrief = async (userId, careerPathId) => {
   const progress = await UserProgress.findOne({ userId, careerPathId });
   const completedRoadmapItems = progress ? progress.completedRoadmapItems : [];
 
+  const skillMap = await _resolveSkillMap(career.phases);
   const annotatedPhases = _annotatePhases(
     career.phases,
-    user.currentSkills.map(s => s.name),
-    completedRoadmapItems
+    _buildUserProfile(user),
+    completedRoadmapItems,
+    skillMap
   );
 
   const totalRoadmapItems = _totalRoadmapItems(career);
