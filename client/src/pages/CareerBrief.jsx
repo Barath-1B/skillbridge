@@ -7,10 +7,6 @@ import {
   Bookmark,
   BookmarkCheck,
   Sparkles,
-  CheckCircle2,
-  Circle,
-  CircleDashed,
-  Clock,
   Layers,
   Trophy,
   AlertCircle,
@@ -23,7 +19,8 @@ import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
 import Skeleton from '../components/common/Skeleton';
 import { useToast } from '../components/common/Toast';
-import { staggerParent, fadeUp } from '../utils/motion';
+import MilestoneTimeline from '../components/roadmap/MilestoneTimeline';
+import ResourcesSection from '../components/roadmap/ResourcesSection';
 
 export default function CareerBrief() {
   const { id } = useParams();
@@ -267,83 +264,17 @@ export default function CareerBrief() {
       </div>
 
       {/* Roadmap */}
-      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">Your roadmap</h2>
-      <motion.ol
-        variants={staggerParent}
-        initial="hidden"
-        animate="show"
-        className="space-y-4 mb-8"
-      >
-        {roadmap.map((phase) => (
-          <motion.li key={phase.phase} variants={fadeUp}>
-            <Card padding="lg">
-              <header className="flex items-center justify-between flex-wrap gap-2 mb-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wider font-semibold text-teal-700 dark:text-teal-300">
-                    Phase {phase.phase}
-                  </p>
-                  <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">{phase.title}</h3>
-                </div>
-                <Badge variant="neutral">{phase.milestoneMonths}</Badge>
-              </header>
-              <ul className="grid sm:grid-cols-2 gap-2">
-                {phase.skills.map((skill, idx) => {
-                  const completed = skill.completed;
-                  const have = skill.status === 'have';
-                  const partial = skill.status === 'partial';
-                  const styleClass = completed
-                    ? 'bg-teal-50 dark:bg-teal-500/10 border-teal-300 dark:border-teal-500/30 text-teal-800 dark:text-teal-200'
-                    : have
-                      ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:border-teal-400'
-                      : partial
-                        ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-200 hover:border-teal-400'
-                        : 'bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:border-teal-400';
-                  return (
-                    <li key={idx}>
-                      <button
-                        type="button"
-                        onClick={() => handleToggle(phase.phase, skill.name)}
-                        aria-pressed={completed}
-                        className={[
-                          'w-full flex items-start gap-2 px-3 py-2 rounded-xl border text-sm transition text-left cursor-pointer',
-                          'focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900',
-                          styleClass,
-                        ].join(' ')}
-                      >
-                        {completed || have ? (
-                          <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${completed ? 'text-teal-600 dark:text-teal-400' : ''}`} />
-                        ) : partial ? (
-                          <CircleDashed className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
-                        ) : (
-                          <Circle className="w-4 h-4 shrink-0 mt-0.5 text-zinc-400" />
-                        )}
-                        <span className="min-w-0">
-                          <span className={completed ? 'line-through decoration-1 decoration-teal-600/60' : ''}>
-                            {skill.name}
-                          </span>
-                          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] font-normal opacity-80">
-                            {partial && skill.via && <span>≈ via {skill.via}</span>}
-                            {typeof skill.effortHours === 'number' && (
-                              <span className="inline-flex items-center gap-0.5">
-                                <Clock className="w-3 h-3" />~{skill.effortHours}h
-                              </span>
-                            )}
-                            {skill.needsFoundation && (
-                              <span className="inline-flex items-center gap-0.5 text-orange-600 dark:text-orange-400">
-                                <AlertCircle className="w-3 h-3" />learn {skill.needsFoundation} first
-                              </span>
-                            )}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Card>
-          </motion.li>
-        ))}
-      </motion.ol>
+      <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-5">Your roadmap</h2>
+      <div className="mb-8">
+        <MilestoneTimeline
+          roadmap={roadmap}
+          progress={progress}
+          onToggleSkill={handleToggle}
+          resources={career.resources}
+        />
+      </div>
+
+      <ResourcesSection career={career} />
 
       {/* Advantages */}
       {Array.isArray(career.advantages) && career.advantages.length > 0 && (
