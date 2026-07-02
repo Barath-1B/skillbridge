@@ -9,6 +9,8 @@ import {
   Sparkles,
   CheckCircle2,
   Circle,
+  CircleDashed,
+  Clock,
   Layers,
   Trophy,
   AlertCircle,
@@ -221,14 +223,24 @@ export default function CareerBrief() {
           </div>
           <p className="text-5xl font-extrabold gradient-text tabular-nums">{analysis.matchScore}%</p>
           <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            Weighted: <span className="font-medium text-zinc-700 dark:text-zinc-200">{analysis.weightedScore}%</span> · OCEAN bonus:{' '}
+            Skill fit: <span className="font-medium text-zinc-700 dark:text-zinc-200">{analysis.weightedScore}%</span> · Personality:{' '}
             <span className="font-medium text-zinc-700 dark:text-zinc-200">
-              {analysis.oceanBonus >= 0 ? '+' : ''}{analysis.oceanBonus}%
+              {analysis.breakdown?.oceanBonus >= 0 ? '+' : ''}{analysis.breakdown?.oceanBonus ?? 0}
             </span>
           </p>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
             Gap: <span className="font-medium text-zinc-700 dark:text-zinc-200">{analysis.gapCount} skills</span> to learn
           </p>
+          {analysis.explanation?.length > 0 && (
+            <ul className="mt-3 space-y-1">
+              {analysis.explanation.map((line, i) => (
+                <li key={i} className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                  <span className="w-1 h-1 rounded-full bg-teal-500 shrink-0" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
         <Card padding="lg">
           <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-teal-700 dark:text-teal-300 mb-2">
@@ -278,11 +290,14 @@ export default function CareerBrief() {
                 {phase.skills.map((skill, idx) => {
                   const completed = skill.completed;
                   const have = skill.status === 'have';
+                  const partial = skill.status === 'partial';
                   const styleClass = completed
                     ? 'bg-teal-50 dark:bg-teal-500/10 border-teal-300 dark:border-teal-500/30 text-teal-800 dark:text-teal-200'
                     : have
                       ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:border-teal-400'
-                      : 'bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:border-teal-400';
+                      : partial
+                        ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/20 text-amber-800 dark:text-amber-200 hover:border-teal-400'
+                        : 'bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:border-teal-400';
                   return (
                     <li key={idx}>
                       <button
@@ -290,20 +305,35 @@ export default function CareerBrief() {
                         onClick={() => handleToggle(phase.phase, skill.name)}
                         aria-pressed={completed}
                         className={[
-                          'w-full flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition text-left cursor-pointer',
+                          'w-full flex items-start gap-2 px-3 py-2 rounded-xl border text-sm transition text-left cursor-pointer',
                           'focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-900',
                           styleClass,
                         ].join(' ')}
                       >
-                        {completed ? (
-                          <CheckCircle2 className="w-4 h-4 shrink-0 text-teal-600 dark:text-teal-400" />
-                        ) : have ? (
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        {completed || have ? (
+                          <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${completed ? 'text-teal-600 dark:text-teal-400' : ''}`} />
+                        ) : partial ? (
+                          <CircleDashed className="w-4 h-4 shrink-0 mt-0.5 text-amber-500" />
                         ) : (
-                          <Circle className="w-4 h-4 shrink-0 text-zinc-400" />
+                          <Circle className="w-4 h-4 shrink-0 mt-0.5 text-zinc-400" />
                         )}
-                        <span className={completed ? 'line-through decoration-1 decoration-teal-600/60' : ''}>
-                          {skill.name}
+                        <span className="min-w-0">
+                          <span className={completed ? 'line-through decoration-1 decoration-teal-600/60' : ''}>
+                            {skill.name}
+                          </span>
+                          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-[11px] font-normal opacity-80">
+                            {partial && skill.via && <span>≈ via {skill.via}</span>}
+                            {typeof skill.effortHours === 'number' && (
+                              <span className="inline-flex items-center gap-0.5">
+                                <Clock className="w-3 h-3" />~{skill.effortHours}h
+                              </span>
+                            )}
+                            {skill.needsFoundation && (
+                              <span className="inline-flex items-center gap-0.5 text-orange-600 dark:text-orange-400">
+                                <AlertCircle className="w-3 h-3" />learn {skill.needsFoundation} first
+                              </span>
+                            )}
+                          </span>
                         </span>
                       </button>
                     </li>
