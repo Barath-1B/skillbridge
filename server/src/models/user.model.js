@@ -27,6 +27,16 @@ const mbtiScoresSchema = new mongoose.Schema(
   { _id: false }
 );
 
+// Rotating refresh-token records: only the sha256 hash of the token is stored.
+// Capped at 5 entries per user (multi-device) — oldest evicted on overflow.
+const refreshTokenSchema = new mongoose.Schema(
+  {
+    tokenHash: { type: String, required: true },
+    expiresAt: { type: Date, required: true },
+  },
+  { _id: false }
+);
+
 const notificationPreferencesSchema = new mongoose.Schema(
   {
     emailUpdates: { type: Boolean, default: true },
@@ -112,6 +122,11 @@ const userSchema = new mongoose.Schema(
     },
     lastMbtiTestDate: {
       type: Date,
+    },
+    refreshTokens: {
+      type: [refreshTokenSchema],
+      default: [],
+      select: false,
     },
   },
   { timestamps: true }

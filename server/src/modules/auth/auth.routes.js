@@ -20,8 +20,18 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Looser than authLimiter: legitimate multi-tab sessions refresh often.
+const refreshLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 30,
+  message: 'Too many refresh attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 router.post('/register', authLimiter, registerValidators, validate, authController.register);
 router.post('/login', authLimiter, loginValidators, validate, authController.login);
+router.post('/refresh', refreshLimiter, authController.refresh);
 router.post('/logout', authController.logout);
 router.get('/me', authenticate, authController.getMe);
 router.put('/password', authenticate, passwordChangeValidators, validate, authController.changePassword);
