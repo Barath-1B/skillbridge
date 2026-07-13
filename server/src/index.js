@@ -5,7 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const compression = require('compression');
-const rateLimit = require('express-rate-limit');
+const { globalLimiter } = require('./middleware/rate-limit.middleware');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/error.middleware');
 const authRoutes = require('./modules/auth/auth.routes');
@@ -40,15 +40,6 @@ app.set('trust proxy', 1);
 app.use(helmet()); // Set security HTTP headers
 app.use(compression()); // Compress JSON responses
 
-// Global rate limiter: 400 requests per 15 minutes
-// (the SPA fires several API calls per page view; 100 was exhausted by one active user)
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 400, // limit each IP to 400 requests per windowMs
-  message: 'Too many requests from this IP, please try again later',
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
-});
 app.use(globalLimiter);
 
 connectDB().catch(err => {
