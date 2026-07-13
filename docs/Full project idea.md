@@ -1081,7 +1081,7 @@ Theme tokens live in `client/src/index.css` under `@theme`. Component variants i
 - Build: `npm run build` → `dist/`
 - Auto-deploy on push to `main` branch
 - HTTPS enabled by default
-- Environment variables: `VITE_API_BASE_URL=<backend-url>`
+- Environment variables: `VITE_API_URL=<backend-url>`
 
 **URL:** `https://skillbridge.vercel.app` (example)
 
@@ -1135,7 +1135,7 @@ NODE_ENV=production
 
 **Frontend (.env):**
 ```
-VITE_API_BASE_URL=https://skillbridge-api.onrender.com/api
+VITE_API_URL=https://skillbridge-api.onrender.com/api
 ```
 
 ### Deployment Workflow
@@ -1231,7 +1231,7 @@ NODE_ENV=development
 
 **client/.env:**
 ```
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5000/api
 ```
 
 ---

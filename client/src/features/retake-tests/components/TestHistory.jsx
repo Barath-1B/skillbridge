@@ -1,12 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Brain, Compass, Briefcase, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Brain, Compass, Briefcase, Calendar } from 'lucide-react';
+import { Card, Button, Modal, Skeleton } from '../../../components/common';
+import { useToast } from '../../../components/common/Toast';
+import { useAuth } from '../../../context/AuthContext';
 import retakeTestsService from '../../../services/retake-tests.service';
 
+const formatDate = (dateString) => {
+  if (!dateString) return 'Never taken';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+};
+
 export default function TestHistory() {
+  const toast = useToast();
+  const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
@@ -16,110 +29,75 @@ export default function TestHistory() {
         const data = await retakeTestsService.getTestHistory();
         if (mounted) setHistory(data);
       } catch {
-        if (mounted) {
-          setMessage('Failed to load test history');
-          setMessageType('error');
-        }
+        if (mounted) toast.error('Failed to load test history');
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    return () => { mounted = false; };
+  }, [toast]);
 
   const handleResetAll = async () => {
-    if (!window.confirm('Are you sure? This will reset all your onboarding data and you\'ll need to complete the profile setup again.')) {
-      return;
-    }
-
     setResetLoading(true);
     try {
       await retakeTestsService.resetAllOnboarding();
-      setMessage('All onboarding data has been reset. Redirecting...');
-      setMessageType('success');
-
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 2000);
+      await refreshUser();
+      toast.success('Onboarding data reset');
+      setConfirmOpen(false);
+      navigate('/setup/profile');
     } catch (err) {
-      setMessage(`Error: ${err.message}`);
-      setMessageType('error');
+      toast.error(err.response?.data?.message || 'Could not reset');
     } finally {
       setResetLoading(false);
     }
   };
 
-  if (loading) return <div className="loading">Loading history...</div>;
+  if (loading) return <Skeleton className="h-64" />;
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Never taken';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const cards = [
+    { icon: Brain, title: 'Personality (OCEAN)', date: history?.lastOceanTestDate, desc: 'Your Big Five traits' },
+    { icon: Compass, title: 'Personality (MBTI)', date: history?.lastMbtiTestDate, desc: 'Your Myers-Briggs type' },
+    { icon: Briefcase, title: 'Skills & Experience', date: history?.lastSkillsTestDate, desc: 'Your technical and soft skills' },
+    { icon: Calendar, title: 'Profile Created', date: history?.profileCreatedAt, desc: 'When you joined SkillBridge' },
+  ];
 
   return (
-    <div className="test-history">
-      <div className="history-info">
-        <p>Track when you've taken your onboarding tests</p>
+    <div>
+      <p className="text-sm text-zinc-600 dark:text-zinc-300 mb-4">Track when you last took each onboarding test.</p>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        {cards.map(({ icon: Icon, title, date, desc }) => (
+          <Card key={title}>
+            <span className="w-10 h-10 rounded-xl grid place-items-center bg-teal-500/15 text-teal-700 dark:text-teal-300 mb-3">
+              <Icon className="w-5 h-5" />
+            </span>
+            <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">{title}</h3>
+            <p className="text-sm font-medium text-teal-700 dark:text-teal-300 mt-1">{formatDate(date)}</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">{desc}</p>
+          </Card>
+        ))}
       </div>
 
-      <div className="history-cards">
-        <div className="history-card">
-          <div className="card-icon"><Brain className="w-8 h-8" /></div>
-          <h3>Personality Test (OCEAN)</h3>
-          <p className="date">{formatDate(history?.lastOceanTestDate)}</p>
-          <p className="description">Your Big Five personality traits</p>
-        </div>
+      <Card className="mt-6">
+        <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">Start over</h3>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 mb-3">
+          Reset all your onboarding data and retake every test from the beginning.
+        </p>
+        <Button variant="secondary" onClick={() => setConfirmOpen(true)}>Reset all onboarding data</Button>
+      </Card>
 
-        <div className="history-card">
-          <div className="card-icon"><Compass className="w-8 h-8" /></div>
-          <h3>Personality Test (MBTI)</h3>
-          <p className="date">{formatDate(history?.lastMbtiTestDate)}</p>
-          <p className="description">Your Myers-Briggs type</p>
-        </div>
-
-        <div className="history-card">
-          <div className="card-icon"><Briefcase className="w-8 h-8" /></div>
-          <h3>Skills & Experience</h3>
-          <p className="date">{formatDate(history?.lastSkillsTestDate)}</p>
-          <p className="description">Your technical and soft skills</p>
-        </div>
-
-        <div className="history-card">
-          <div className="card-icon"><Calendar className="w-8 h-8" /></div>
-          <h3>Profile Created</h3>
-          <p className="date">{formatDate(history?.profileCreatedAt)}</p>
-          <p className="description">When you first joined SkillBridge</p>
-        </div>
-      </div>
-
-      <div className="reset-section">
-        <h3>Start Over</h3>
-        <p>Need a fresh start? Reset all your onboarding data and retake all tests from the beginning.</p>
-        <button
-          className="reset-all-btn"
-          onClick={handleResetAll}
-          disabled={resetLoading}
-        >
-          {resetLoading ? 'Resetting...' : 'Reset All Onboarding Data'}
-        </button>
-      </div>
-
-      {message && (
-        <div className={`message ${messageType || 'error'}`}>
-          <span className="message-icon">
-            {messageType === 'success' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-          </span>
-          {message}
-        </div>
-      )}
+      <Modal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Reset all onboarding data?"
+        description="This clears your experience, skills, and personality results. You'll go through profile setup again."
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={resetLoading}>Cancel</Button>
+            <Button variant="danger" onClick={handleResetAll} loading={resetLoading}>Reset everything</Button>
+          </>
+        }
+      />
     </div>
   );
 }

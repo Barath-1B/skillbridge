@@ -18,6 +18,7 @@ import { OCEAN_TRAITS, oceanTier } from '../constants/ocean';
 import { MBTI_TYPES, MBTI_DIMENSIONS } from '../constants/mbti';
 import { skillCategoryLabel } from '../constants/skillCategories';
 import CertificationsManager from '../components/profile/CertificationsManager';
+import InterestsEditor from '../components/profile/InterestsEditor';
 
 function TabBtn({ children, selected }) {
   return (
@@ -207,17 +208,7 @@ export default function ProfilePage() {
 
                 <motion.div variants={fadeUp}>
                   <Card title="Interests" subtitle="What excites you">
-                    {Array.isArray(data.interests) && data.interests.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {data.interests.map((i) => (
-                          <Badge key={i} variant="primary">
-                            {i}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">No interests added yet.</p>
-                    )}
+                    <InterestsEditor />
                   </Card>
                 </motion.div>
 
