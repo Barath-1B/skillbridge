@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const authenticate = require('../../middleware/authenticate.middleware');
+const { userLimiter } = require('../../middleware/rate-limit.middleware');
 const { analyze } = require('./analyzer.controller');
 
 // GET /api/analyze — run gap analysis for the authenticated user
-router.get('/', authenticate, analyze);
+router.get('/', authenticate, userLimiter, analyze);
 
 module.exports = router;
