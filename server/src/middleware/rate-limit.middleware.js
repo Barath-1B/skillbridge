@@ -41,10 +41,8 @@ const userLimiter = rateLimit({
   message: 'Too many requests, please slow down',
   standardHeaders: true,
   legacyHeaders: false,
+  // The req.ip fallback is unreachable in practice (authenticate runs first).
   keyGenerator: (req) => req.user?.userId?.toString() || req.ip,
-  // The req.ip fallback is unreachable in practice (authenticate runs first);
-  // silence the v7.5 IPv6-fallback validation for it.
-  validate: { keyGeneratorIpFallback: false },
 });
 
 module.exports = {
