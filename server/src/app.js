@@ -55,6 +55,12 @@ app.use('/api/roadmap', roadmapRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/retake-tests', retakeTestsRoutes);
 
+// Sentry's error handler captures then forwards to the next handler, so it
+// must sit between the routes and the app's own errorHandler.
+if (process.env.SENTRY_DSN) {
+  require('@sentry/node').setupExpressErrorHandler(app);
+}
+
 app.use(errorHandler);
 
 module.exports = app;
