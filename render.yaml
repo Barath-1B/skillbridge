@@ -19,3 +19,7 @@ services:
         value: 30d
       - key: CLIENT_URL
         sync: false
+      - key: LOG_LEVEL
+        value: info
+      - key: SENTRY_DSN
+        sync: false

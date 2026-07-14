@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./config/sentry'); // no-op unless SENTRY_DSN is set
 const mongoose = require('mongoose');
 const logger = require('./utils/logger');
 const connectDB = require('./config/db');
