@@ -1,5 +1,6 @@
 const ApiResponse = require('../utils/ApiResponse');
 const ApiError = require('../utils/ApiError');
+const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
   if (err instanceof ApiError) {
@@ -23,7 +24,7 @@ const errorHandler = (err, req, res, next) => {
     return ApiResponse.error(res, 409, `${field} already exists`);
   }
 
-  console.error('Unhandled error:', err);
+  logger.error({ err, method: req.method, url: req.originalUrl }, 'Unhandled error');
   return ApiResponse.error(res, 500, 'Internal server error');
 };
 
