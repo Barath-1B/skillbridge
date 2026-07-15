@@ -1,5 +1,11 @@
 # SkillBridge Data Models
 
+> **Note:** this file predates several schema changes and drifts from the code
+> in places (e.g. `certifications` is `[String]`, `oceanScore` keys are
+> `O/C/E/A/N`, `role` is `user|admin`). For the code-accurate reference see
+> [PROJECT-REPORT.md](PROJECT-REPORT.md) §6 and the schemas in
+> `server/src/models/`.
+
 ## User Schema
 
 ```js
@@ -8,6 +14,10 @@
   email: String (unique, required),
   password: String (bcrypted, required),
   name: String (required),
+
+  // Auth — rotating refresh-token records (sha256 hashes only, max 5,
+  // select: false so they never leave the DB by default)
+  refreshTokens: [{ tokenHash: String, expiresAt: Date }],
   
   // Profile
   role: String (enum: ['student', 'professional', 'admin'], default: 'student'),
