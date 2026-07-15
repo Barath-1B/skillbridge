@@ -5,6 +5,63 @@ Each entry: what was audited/changed, why, and how it was verified.
 
 ---
 
+## 2026-07-15 — Completion pass (hardening, tests, CI, admin skill picker)
+
+### Why
+"Complete it": finish everything the upgrade roadmap left open — Phase 3
+(production hardening), Phase 4 (CI/CD + testing) — plus the known gaps from
+earlier session notes (orphaned InterestsEditor, admin careers without
+requiredSkills) and doc drift.
+
+### Changes
+- **In-flight work landed:** wired `InterestsEditor` into the Profile page
+  (was built but rendered nowhere) and committed the shared `RetakeQuiz`
+  refactor.
+- **Refresh tokens:** 1h access token + 30d rotating refresh JWT in an
+  httpOnly cookie scoped to `/api/auth`. Only sha256 hashes are stored
+  (`user.refreshTokens`, capped at 5, `select: false`); `POST /auth/refresh`
+  rotates and rejects replays; logout/account-delete revoke. A `jti` claim
+  keeps same-second tokens unique. Client: single-flight axios 401
+  interceptor retries the original request once after refreshing.
+- **Rate limiting:** extracted to `middleware/rate-limit.middleware.js`;
+  added per-user limiter (200/15min by userId) after `authenticate` on
+  analyzer + retake-tests, and a refresh limiter (30/15min).
+- **Logging/bootstrap:** pino (`utils/logger.js`, JSON in prod, pretty in
+  dev); split `app.js` (Express app) from `index.js` (bootstrap);
+  unhandledRejection/uncaughtException fatal-log handlers.
+- **Sentry (env-gated):** `@sentry/node` + `@sentry/react`, strict no-ops
+  without `SENTRY_DSN`/`VITE_SENTRY_DSN`; client loads via dynamic import.
+- **Tests:** `npm test` = `node --test` over `server/tests/`. Gap-engine
+  invariants (ported from the deleted selfcheck), personality-scoring units,
+  and an auth API integration test (supertest + mongodb-memory-server)
+  covering register→login→me→refresh(rotation/replay)→logout.
+- **CI:** `.github/workflows/ci.yml` — server tests + client lint/build.
+- **Pre-commit:** committed `.githooks/pre-commit` (client lint / server
+  tests when staged); activate with `git config core.hooksPath .githooks`.
+- **Admin:** `CareerForm` gained a required-skills editor (skill select
+  grouped by category, weight 1-10, priority) — admin-created careers can
+  finally rank in the analyzer.
+- **Docs:** PROJECT-REPORT/architecture/api-contracts/data-models corrected
+  (Redux→Context, ports, limits, refresh flow); CLAUDE.md rewritten where
+  behavior changed.
+
+### Verification
+- `npm test` (server) → 31/31 pass, including the full auth flow against
+  in-memory Mongo (rotation + replay rejection observed).
+- `npm run lint` (client) → 0 errors (3 pre-existing warnings);
+  `npm run build` → clean.
+- Prod-mode boot emits JSON logs; dev emits pretty logs; app loads with and
+  without a Sentry DSN; entry chunk contains no sentry code when unset.
+- Pre-commit hook observed running eslint on a real commit.
+
+### Not done / notes
+- Ship server+client together: 1h tokens without the client interceptor log
+  users out hourly.
+- Render free-tier keep-alive remains external (UptimeRobot or paid tier).
+- `docs/Full project idea.md` / `progress.md` left as historical records.
+
+---
+
 ## 2026-06-04 — Pass 2 (certifications UI, admin members view, icons, polish)
 
 ### Why

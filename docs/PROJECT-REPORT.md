@@ -51,7 +51,7 @@ plan.
 | Framework | React 19 |
 | Build tool | Vite 8 |
 | Routing | React Router DOM 7 |
-| State | Redux Toolkit 2 + React Redux 9 |
+| State | React Context (AuthContext, ThemeContext, Toast) — no Redux |
 | Styling | Tailwind CSS 4 (+ PostCSS, autoprefixer) |
 | Animation | framer-motion 12 |
 | HTTP client | axios 1 |
@@ -127,7 +127,7 @@ On startup the server:
 1. Loads `.env` via dotenv.
 2. **Validates required env vars** (`MONGO_URI`, `JWT_SECRET`, `PORT`) and exits if any are missing.
 3. Applies security/performance middleware: `helmet()`, `compression()`.
-4. Installs a **global rate limiter** — 100 requests / 15 min per IP (standard `RateLimit-*` headers).
+4. Installs a **global rate limiter** — 400 requests / 15 min per IP (standard `RateLimit-*` headers), from `middleware/rate-limit.middleware.js`; compute-heavy authenticated routes add a per-user limiter (200/15 min keyed by userId).
 5. Connects to MongoDB (`connectDB`), exiting on failure.
 6. Configures **CORS** with an origin allowlist (`CLIENT_URL` + localhost dev ports) and `credentials: true`.
 7. Parses JSON, urlencoded bodies, and cookies.
@@ -469,7 +469,7 @@ Auth tokens are issued as **httpOnly cookies** (7-day expiry by default).
 
 ### App composition — `client/src/App.jsx`
 ```
-<Provider store>                 # Redux
+<ThemeProvider>                  # dark mode (in main.jsx)
   <AuthProvider>                 # auth/session context
     <ToastProvider>              # global toast notifications
       <BrowserRouter>
@@ -504,8 +504,7 @@ Auth tokens are issued as **httpOnly cookies** (7-day expiry by default).
 | `components/charts/` | MatchScoreChart |
 | `components/admin/` | CareerForm, SkillForm |
 | `services/` | Axios API functions per feature (auth, profile, analyzer, explorer, roadmap, admin, settings, retake-tests) |
-| `store/` | Redux store + slices (authSlice, profileSlice, careerSlice) |
-| `context/` | AuthContext, ThemeContext |
+| `context/` | AuthContext, ThemeContext (global state — React Context only, no Redux) |
 | `hooks/` | useAuth, useFetch |
 | `constants/` | experience, ocean, theme |
 | `utils/` | cx (classnames), motion (framer-motion variants) |
@@ -559,10 +558,10 @@ time-to-bridge.
 
 | Layer | Mechanism |
 |---|---|
-| Authentication | JWT signed with `JWT_SECRET`, delivered as **httpOnly** cookie (not JS-readable); 7-day expiry |
+| Authentication | JWT signed with `JWT_SECRET`, delivered as **httpOnly** cookie (not JS-readable); 1-hour access token + 30-day rotating refresh token (`POST /auth/refresh`, hash stored server-side, replay-rejected) |
 | Password storage | bcryptjs hashing |
 | Authorization | `authenticate` middleware + `requireRole('admin')` RBAC for admin routes |
-| Rate limiting | Global 100 req/15 min per IP; stricter auth limiter (10/15 min in prod) |
+| Rate limiting | Global 400 req/15 min per IP; auth limiter 10/15 min in prod; refresh limiter 30/15 min; per-user limiter (200/15 min) on analyzer + retake-tests |
 | HTTP hardening | helmet security headers |
 | CORS | Origin allowlist (`CLIENT_URL` + dev ports), `credentials: true`, restricted methods/headers |
 | Input handling | express-validator rules + `validate` middleware; `xss` available for sanitization |
@@ -578,15 +577,19 @@ time-to-bridge.
 PORT=5001
 MONGO_URI=mongodb://localhost:27017/skillbridge
 JWT_SECRET=<secret>
-JWT_EXPIRES_IN=7d
+JWT_EXPIRES_IN=1h                       # access token
+REFRESH_EXPIRES_IN=30d                  # refresh token
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173        # CORS origin in production
+LOG_LEVEL=info                          # pino log level
+SENTRY_DSN=                             # optional — enables error tracking
 ALLOW_PROD_SEED=true                    # only if seeding a prod DB
 ```
 
 ### `client/.env`
 ```
 VITE_API_URL=http://localhost:5001/api
+VITE_SENTRY_DSN=                        # optional — enables error tracking
 ```
 
 ---
@@ -625,7 +628,7 @@ npm run dev                 # vite → http://localhost:5173
 - **Type:** Node web service, `rootDir: server`.
 - **Build:** `npm install`; **Start:** `npm start`.
 - **Health check:** `/api/health`.
-- **Env vars:** `NODE_ENV=production`, `MONGO_URI` (manual), `JWT_SECRET` (generated), `JWT_EXPIRES_IN=7d`, `CLIENT_URL` (manual).
+- **Env vars:** `NODE_ENV=production`, `MONGO_URI` (manual), `JWT_SECRET` (generated), `JWT_EXPIRES_IN=1h`, `REFRESH_EXPIRES_IN=30d`, `CLIENT_URL` (manual), `LOG_LEVEL=info`, `SENTRY_DSN` (manual, optional).
 - **Client:** `client/vercel.json` rewrites all routes to `index.html` for SPA routing.
 
 ---
