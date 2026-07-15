@@ -13,9 +13,12 @@ const signAuthToken = (user) =>
     { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
   );
 
+// jti makes every refresh token unique — without it, two tokens signed in
+// the same second are byte-identical (iat has second resolution), which
+// would break rotation's used-token revocation.
 const signRefreshToken = (user) =>
   jwt.sign(
-    { userId: user._id, type: 'refresh' },
+    { userId: user._id, type: 'refresh', jti: crypto.randomUUID() },
     process.env.JWT_SECRET,
     { expiresIn: process.env.REFRESH_EXPIRES_IN || '30d' }
   );
