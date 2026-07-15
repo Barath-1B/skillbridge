@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-commit: lint the client and test the server, but only when their files
+# are actually staged. One-time setup per clone:
+#   git config core.hooksPath .githooks
+set -e
+
+staged=$(git diff --cached --name-only)
+
+if printf '%s\n' "$staged" | grep -q '^client/'; then
+  echo "pre-commit: client files staged — running eslint"
+  (cd client && npm run lint)
+fi
+
+if printf '%s\n' "$staged" | grep -q '^server/'; then
+  echo "pre-commit: server files staged — running npm test"
+  (cd server && npm test)
+fi
