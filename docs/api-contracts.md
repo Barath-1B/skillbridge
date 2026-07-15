@@ -1,6 +1,6 @@
 # SkillBridge API Contracts
 
-Base URL: `http://localhost:5000/api`
+Base URL: `http://localhost:5001/api`
 
 ## Authentication Endpoints
 
@@ -510,8 +510,13 @@ All errors follow this format:
 ## Authentication Notes
 
 - JWT tokens are issued as **httpOnly cookies** (secure, not accessible via JS)
-- Token expiry: 7 days
-- Refresh token flow not implemented in v1
+- Access token expiry: 1 hour (`token` cookie); refresh token: 30 days
+  (`refreshToken` cookie, path-scoped to `/api/auth`)
+- **POST /auth/refresh** — no body; reads the `refreshToken` cookie, rotates it
+  (the used token is revoked; replays get 401), and re-issues both cookies.
+  Response: `{ token, user }`. The client axios interceptor calls this
+  automatically on a 401 and retries the original request once.
+- **POST /auth/logout** revokes the refresh token server-side and clears both cookies
 - Guest users can access `/analyzer/analyze` and `/careers` endpoints
-- Protected endpoints require `Authorization: Bearer <token>` header
+- Protected endpoints also accept an `Authorization: Bearer <token>` header
 

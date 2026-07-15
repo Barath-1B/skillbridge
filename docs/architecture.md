@@ -31,9 +31,9 @@ client/src/
 │   ├── analyzer/        # analyzeProfile()
 │   └── ...
 │
-├── store/               # Redux state management
-│   ├── store.js         # Redux store configuration
-│   └── slices/          # Redux slices (auth, profile, etc.)
+├── context/             # React Context state (no Redux)
+│   ├── AuthContext.jsx  # session/user state
+│   └── ThemeContext.jsx # dark mode
 │
 ├── routes/              # Route definitions & guards
 │   ├── AppRouter.jsx    # Main router
@@ -53,7 +53,7 @@ client/src/
 ### Component Guidelines
 - **Functional components only** — no class components
 - Keep components focused and single-responsibility
-- Local state with `useState`, global state with Redux
+- Local state with `useState`, global state with React Context (AuthContext, ThemeContext, Toast)
 - All API calls through `services/`, never inline
 
 ---
@@ -150,8 +150,8 @@ Career paths are stored in the database, not hardcoded. Adding new paths require
 - `matchScore.js` — only score calculation
 - Each service does one thing well
 
-### 4. Redux for Global State Only
-- Redux: auth, user profile, career results
+### 4. Context for Global State Only
+- React Context: auth/session (AuthContext), theme (ThemeContext), toasts
 - Local state: UI toggles, form inputs, loading states
 
 ### 5. API Response Standardization
