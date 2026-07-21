@@ -284,31 +284,6 @@ Two things to know before running it:
 
 Seeding refuses to run when `NODE_ENV=production` unless `ALLOW_PROD_SEED=true`.
 
-## Environment setup
-
-**`server/.env`**
-
-| Variable | Required | Default | Purpose |
-|---|---|---|---|
-| `PORT` | yes | — | API port (5001 in development) |
-| `MONGO_URI` | yes | — | MongoDB connection string |
-| `JWT_SECRET` | yes | — | Signing secret; use at least 32 random characters |
-| `CLIENT_URL` | no | `http://localhost:5173` | Allowed CORS origin |
-| `JWT_EXPIRES_IN` | no | `1h` | Access token lifetime |
-| `REFRESH_EXPIRES_IN` | no | `30d` | Refresh token lifetime |
-| `LOG_LEVEL` | no | `info` | pino log level |
-| `NODE_ENV` | no | — | `production` enables secure cookies and strict limits |
-| `SENTRY_DSN` | no | — | Enables error tracking; no-op when empty |
-
-The server **exits on startup** if `PORT`, `MONGO_URI` or `JWT_SECRET` is missing. That is
-deliberate — a server running without a JWT secret is worse than one that refuses to start.
-
-**`client/.env`**
-
-| Variable | Required | Purpose |
-|---|---|---|
-| `VITE_API_URL` | yes | API base URL, e.g. `http://localhost:5001/api` |
-| `VITE_SENTRY_DSN` | no | Enables client error tracking |
 
 ## Usage
 
