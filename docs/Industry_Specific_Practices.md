@@ -1,2 +1,0 @@
-"# Industry Specific Practices for SkillBridge\n\n---\n\n## Slide 1 – Overview\n\n**Project:** SkillBridge – MERN‑based career‑path advisor\n\n**Goal:** Enable CS students & early‑career professionals to discover, evaluate, and follow personali
-<truncated 13268 bytes>
