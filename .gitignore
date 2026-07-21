@@ -41,5 +41,5 @@ CLAUDE.md
 
 
 
-# Local dev credentials — never commit
-docs/password.md
+# Local-only project documentation (includes dev credentials — never commit)
+docs/
