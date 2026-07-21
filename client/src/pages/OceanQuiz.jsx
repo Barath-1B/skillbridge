@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, AlertCircle, Sparkles, Check } from 'lucide-react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -10,6 +11,7 @@ import Skeleton from '../components/common/Skeleton';
 
 export default function OceanQuiz() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({});
   const [current, setCurrent] = useState(0);
@@ -52,7 +54,6 @@ export default function OceanQuiz() {
     () => Object.values(answers).filter((a) => a !== '').length,
     [answers]
   );
-  const allAnswered = answered === total && total > 0;
   const q = questions[current];
   const currentAnswer = answers[current] || '';
 
@@ -83,18 +84,24 @@ export default function OceanQuiz() {
   };
 
   const handleSubmit = async () => {
-    if (!allAnswered) {
-      setError('Answer every question to continue.');
+    // If anything is unanswered, jump the user to the first gap instead of
+    // silently doing nothing.
+    const firstUnanswered = questions.findIndex((_, idx) => !answers[idx]);
+    if (firstUnanswered !== -1) {
+      cancelAdvance();
+      setCurrent(firstUnanswered);
+      setError(`Please answer question ${firstUnanswered + 1} before continuing.`);
       return;
     }
     setError('');
     setSubmitting(true);
     try {
-      const answerArray = questions.map((_, idx) => ({
-        questionId: idx + 1,
+      const answerArray = questions.map((question, idx) => ({
+        questionId: question.id,
         answer: answers[idx],
       }));
       await api.post('/profile/ocean', { answers: answerArray });
+      await refreshUser();
       navigate('/analyze');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save answers');
@@ -219,7 +226,7 @@ export default function OceanQuiz() {
         ) : (
           <Button
             onClick={handleSubmit}
-            disabled={!allAnswered}
+            disabled={submitting}
             loading={submitting}
             rightIcon={!submitting ? <Sparkles className="w-4 h-4" /> : null}
           >

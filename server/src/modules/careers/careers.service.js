@@ -28,10 +28,12 @@ const getCareerById = async (careerPathId) => {
   return career.toObject({ versionKey: false });
 };
 
+const SKILL_FIELDS = 'name category relatedSkills difficultyLevel learningHours';
+
 const _buildUserContext = async (userId, careerPathId) => {
   const [user, career] = await Promise.all([
-    User.findById(userId).populate('currentSkills', 'name category').select('-password'),
-    CareerPath.findById(careerPathId).populate('requiredSkills.skillId', 'name category'),
+    User.findById(userId).populate('currentSkills', SKILL_FIELDS).select('-password'),
+    CareerPath.findById(careerPathId).populate('requiredSkills.skillId', SKILL_FIELDS),
   ]);
 
   if (!user) throw new ApiError(404, 'User not found');
@@ -40,10 +42,17 @@ const _buildUserContext = async (userId, careerPathId) => {
   return { user, career };
 };
 
+const _buildUserProfile = (user) => ({
+  skillIdSet: new Set(user.currentSkills.map(s => s._id.toString())),
+  skillNameSet: new Set(user.currentSkills.map(s => s.name.toLowerCase())),
+  certifications: user.certifications || [],
+  ocean: user.oceanScore || {},
+  experience: user.experience,
+  interests: user.interests || [],
+});
+
 const analyzeCareer = async (userId, careerPathId) => {
   const { user, career } = await _buildUserContext(userId, careerPathId);
-
-  const userSkillIdSet = new Set(user.currentSkills.map(s => s._id.toString()));
 
   const requiredSkills = career.requiredSkills
     .filter(rs => rs.skillId)
@@ -53,14 +62,17 @@ const analyzeCareer = async (userId, careerPathId) => {
       category: rs.skillId.category,
       weight: rs.weight,
       priority: rs.priority,
+      relatedSkills: rs.skillId.relatedSkills || [],
     }));
 
-  const analysis = analyzeCareerPath(
-    userSkillIdSet,
-    user.certifications,
-    user.oceanScore,
-    { domain: career.domain, requiredSkills, requiredCerts: career.certifications }
-  );
+  const analysis = analyzeCareerPath(_buildUserProfile(user), {
+    domain: career.domain,
+    title: career.title,
+    difficulty: career.difficulty,
+    demand: career.demand,
+    requiredSkills,
+    requiredCerts: career.certifications,
+  });
 
   return {
     careerPath: career.toObject({ versionKey: false }),

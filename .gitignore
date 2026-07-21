@@ -40,3 +40,6 @@ Thumbs.db
 CLAUDE.md
 
 
+
+# Local-only project documentation (includes dev credentials — never commit)
+docs/

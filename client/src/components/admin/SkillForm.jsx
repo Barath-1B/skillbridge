@@ -1,182 +1,139 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { Modal, Input, Textarea, Button } from '../common';
+import { SKILL_CATEGORIES, SKILL_CATEGORY_LABELS } from '../../constants/skillCategories';
 
-export default function SkillForm({ skill, onSave, onCancel }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    category: 'skill',
-    difficulty: 'Intermediate',
-  });
+const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'];
 
+const selectClass = [
+  'w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition',
+  'bg-white border border-zinc-200 text-zinc-900',
+  'focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20',
+  'dark:bg-white/5 dark:border-white/10 dark:text-zinc-100',
+].join(' ');
+
+// Map an existing skill (or null) to initial form state. Callers should pass a
+// changing `key` when opening so this re-runs via the useState initializer
+// instead of a prop-syncing effect.
+const buildInitial = (skill) => ({
+  name: skill?.name || '',
+  category: skill?.category || SKILL_CATEGORIES[0],
+  difficultyLevel: skill?.difficultyLevel || 'intermediate',
+  description: skill?.description || '',
+  tags: (skill?.tags || []).join(', '),
+});
+
+export default function SkillForm({ open, skill, onSave, onCancel }) {
+  const [formData, setFormData] = useState(() => buildInitial(skill));
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-
-  const categories = ['skill', 'knowledge', 'certification', 'softSkill'];
-  const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
-
-  useEffect(() => {
-    if (skill) {
-      setFormData({
-        name: skill.name || '',
-        category: skill.category || 'skill',
-        difficulty: skill.difficulty || 'Intermediate',
-      });
-    }
-  }, [skill]);
-
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Skill name is required';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    if (!formData.name.trim()) {
+      setErrors({ name: 'Skill name is required' });
+      return;
+    }
 
     setSaving(true);
     try {
-      await onSave(formData);
+      await onSave({
+        name: formData.name.trim(),
+        category: formData.category,
+        difficultyLevel: formData.difficultyLevel,
+        description: formData.description.trim(),
+        tags: formData.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
+      });
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '0',
-        left: '0',
-        right: '0',
-        bottom: '0',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: '1000',
-      }}
+    <Modal
+      open={open}
+      onClose={onCancel}
+      title={skill ? 'Edit Skill' : 'Create New Skill'}
+      size="lg"
     >
-      <div
-        style={{
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          padding: '30px',
-          maxWidth: '500px',
-          width: '90%',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        <h2 style={{ marginTop: '0' }}>{skill ? 'Edit Skill' : 'Create New Skill'}</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Skill Name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          placeholder="e.g., Python, Communication"
+          error={errors.name}
+        />
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Skill Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+              Category
+            </label>
+            <select name="category" value={formData.category} onChange={handleChange} className={selectClass}>
+              {SKILL_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {SKILL_CATEGORY_LABELS[cat]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
+              Difficulty
+            </label>
+            <select
+              name="difficultyLevel"
+              value={formData.difficultyLevel}
               onChange={handleChange}
-              placeholder="e.g., Python, Machine Learning"
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: errors.name ? '2px solid #dc3545' : '1px solid #ddd',
-                borderRadius: '4px',
-                boxSizing: 'border-box',
-              }}
-            />
-            {errors.name && <p style={{ color: '#dc3545', fontSize: '12px', margin: '5px 0 0 0' }}>{errors.name}</p>}
-          </div>
-
-          <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Category</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Difficulty</label>
-              <select
-                name="difficulty"
-                value={formData.difficulty}
-                onChange={handleChange}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {difficulties.map((diff) => (
-                  <option key={diff} value={diff}>
-                    {diff}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={onCancel}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#6c757d',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
+              className={selectClass}
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              style={{
-                padding: '10px 20px',
-                backgroundColor: '#28a745',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: saving ? 'not-allowed' : 'pointer',
-                opacity: saving ? 0.6 : 1,
-                fontWeight: 'bold',
-              }}
-            >
-              {saving ? 'Saving...' : skill ? 'Update' : 'Create'}
-            </button>
+              {DIFFICULTIES.map((d) => (
+                <option key={d} value={d} className="capitalize">
+                  {d.charAt(0).toUpperCase() + d.slice(1)}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+
+        <Textarea
+          label="Description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          rows={3}
+          placeholder="Short description of the skill"
+        />
+
+        <Input
+          label="Tags"
+          name="tags"
+          value={formData.tags}
+          onChange={handleChange}
+          placeholder="comma-separated, e.g. backend, rest, api"
+          hint="Separate tags with commas."
+        />
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" loading={saving}>
+            {skill ? 'Update' : 'Create'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   );
 }

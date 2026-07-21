@@ -21,7 +21,11 @@ export function useFetch(url, method = 'GET', dependencies = []) {
   };
 
   useEffect(() => {
+    // Fetching on mount/dep-change is this hook's entire purpose; refetch
+    // intentionally flips loading state synchronously before the request.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 
   return { data, loading, error, refetch };

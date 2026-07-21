@@ -2,6 +2,8 @@ const User = require('../../models/user.model');
 const Skill = require('../../models/skill.model');
 const ApiError = require('../../utils/ApiError');
 const oceanQuestions = require('../../constants/ocean-questions');
+const mbtiQuestions = require('../../constants/mbti-questions');
+const { computeOceanScores, computeMbtiResult } = require('../../utils/personality-scoring');
 
 const POPULATED_SKILL_FIELDS = 'name category tags';
 
@@ -90,41 +92,21 @@ const getSkills = async (category) => {
 const getOceanQuestions = async () => oceanQuestions;
 
 const computeAndSaveOcean = async (userId, answers) => {
-  const validQuestionIds = oceanQuestions.map(q => q.id);
-  const answerQuestionIds = answers.map(a => a.questionId);
+  const oceanScore = computeOceanScores(oceanQuestions, answers);
 
-  if (!answerQuestionIds.every(id => validQuestionIds.includes(id))) {
-    throw new ApiError(400, 'One or more question IDs are invalid');
-  }
+  return requireUser(
+    await updateUserPopulated(userId, { oceanScore, lastOceanTestDate: new Date() })
+  );
+};
 
-  const questionMap = {};
-  oceanQuestions.forEach(q => {
-    questionMap[q.id] = q.options;
-  });
+const getMbtiQuestions = async () => mbtiQuestions;
 
-  const traitScores = { O: [], C: [], E: [], A: [], N: [] };
+const computeAndSaveMbti = async (userId, answers) => {
+  const { mbtiType, mbtiScores } = computeMbtiResult(mbtiQuestions, answers);
 
-  answers.forEach(({ questionId, answer }) => {
-    const options = questionMap[questionId];
-    const selectedOption = options.find(opt => opt.value === answer);
-
-    if (!selectedOption) {
-      throw new ApiError(400, `Invalid answer for question ${questionId}`);
-    }
-
-    traitScores[selectedOption.trait].push(selectedOption.score);
-  });
-
-  const oceanScore = {};
-  Object.keys(traitScores).forEach(trait => {
-    const scores = traitScores[trait];
-    const average = scores.length > 0
-      ? scores.reduce((a, b) => a + b, 0) / scores.length
-      : 50;
-    oceanScore[trait] = Math.round(average);
-  });
-
-  return requireUser(await updateUserPopulated(userId, { oceanScore }));
+  return requireUser(
+    await updateUserPopulated(userId, { mbtiType, mbtiScores, lastMbtiTestDate: new Date() })
+  );
 };
 
 module.exports = {
@@ -135,4 +117,6 @@ module.exports = {
   getSkills,
   getOceanQuestions,
   computeAndSaveOcean,
+  getMbtiQuestions,
+  computeAndSaveMbti,
 };

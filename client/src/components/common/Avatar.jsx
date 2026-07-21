@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 const SIZES = {
   xs: 'w-6 h-6 text-[10px]',
@@ -22,9 +22,13 @@ export default function Avatar({ name = '', src, size = 'md', className = '', ri
   const base = `inline-flex items-center justify-center rounded-full overflow-hidden font-semibold ${sizeClass} ${ringClass}`;
 
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
+  // Reset the error state when the image source changes (render-time
+  // adjustment instead of an effect, per React docs).
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setFailed(false);
-  }, [src]);
+  }
 
   if (src && !failed) {
     return (

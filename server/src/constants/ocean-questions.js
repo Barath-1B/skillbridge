@@ -121,4 +121,50 @@ const oceanQuestions = [
   }
 ];
 
+// Trait-targeted Likert items (ids 13-32): every option scores the SAME trait
+// at graded levels, so each of the 5 traits gets 4 dedicated questions and is
+// guaranteed ≥4 samples (the original 12 mixed-trait items can leave a trait
+// with 0-2 samples, silently defaulting it to 50). Half are reverse-keyed.
+const LIKERT = ['Strongly agree', 'Agree', 'Disagree', 'Strongly disagree'];
+const fwdScores = [90, 65, 35, 10];
+const revScores = [10, 35, 65, 90];
+const likert = (trait, text, reverse = false) => ({
+  trait,
+  text,
+  options: LIKERT.map((label, i) => ({
+    value: 'ABCD'[i],
+    label,
+    trait,
+    score: (reverse ? revScores : fwdScores)[i],
+  })),
+});
+
+// Interleaved O, C, E, A, N so the quiz doesn't cluster one trait together.
+const traitStatements = [
+  likert('O', 'I enjoy exploring abstract ideas and theoretical concepts.'),
+  likert('C', 'I keep my work organized and follow through on my commitments.'),
+  likert('E', 'I feel energized when meeting and talking with new people.'),
+  likert('A', 'I go out of my way to help colleagues, even when it costs me.'),
+  likert('N', 'I often worry about things that might go wrong.'),
+  likert('O', 'I prefer sticking to familiar routines over trying new approaches.', true),
+  likert('C', 'I tend to leave tasks until the last minute.', true),
+  likert('E', 'I prefer working quietly on my own rather than in a group.', true),
+  likert('A', 'I put my own priorities ahead of other people’s feelings.', true),
+  likert('N', 'I stay calm and composed under pressure.', true),
+  likert('O', 'I am curious about many different fields and topics.'),
+  likert('C', 'I double-check my work to make sure it is done properly.'),
+  likert('E', 'I enjoy being the center of attention in a group.'),
+  likert('A', 'I try to see situations from other people’s point of view.'),
+  likert('N', 'Small setbacks can leave me feeling discouraged.'),
+  likert('O', 'I would rather follow proven methods than experiment.', true),
+  likert('C', 'I find it hard to stick to a schedule or plan.', true),
+  likert('E', 'I feel drained after spending a lot of time around people.', true),
+  likert('A', 'I find it difficult to trust other people’s intentions.', true),
+  likert('N', 'I rarely feel anxious or stressed about my work.', true),
+];
+
+traitStatements.forEach((q, i) => {
+  oceanQuestions.push({ id: 13 + i, text: q.text, options: q.options });
+});
+
 module.exports = oceanQuestions;

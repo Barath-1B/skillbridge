@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../api/axios';
 
+// eslint-disable-next-line react-refresh/only-export-components -- context co-located with its provider by design
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -60,4 +61,5 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook co-located with its provider by design
 export const useAuth = () => useContext(AuthContext);

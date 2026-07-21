@@ -1,11 +1,12 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/logger');
 
 mongoose.connection.on('disconnected', () => {
-  console.warn('MongoDB disconnected');
+  logger.warn('MongoDB disconnected');
 });
 
 mongoose.connection.on('reconnected', () => {
-  console.log('MongoDB reconnected');
+  logger.info('MongoDB reconnected');
 });
 
 const connectDB = async () => {
@@ -15,9 +16,9 @@ const connectDB = async () => {
   });
 
   if (process.env.NODE_ENV !== 'production') {
-    console.log(`MongoDB connected: ${mongoose.connection.host}`);
+    logger.info({ host: mongoose.connection.host }, 'MongoDB connected');
   } else {
-    console.log('MongoDB connected');
+    logger.info('MongoDB connected');
   }
 };
 
