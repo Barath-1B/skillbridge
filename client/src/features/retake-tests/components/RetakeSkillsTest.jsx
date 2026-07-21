@@ -1,130 +1,140 @@
 import { useState, useEffect } from 'react';
+import { Check, CheckCircle2 } from 'lucide-react';
+import { Card, Button, Skeleton } from '../../../components/common';
+import { useToast } from '../../../components/common/Toast';
+import { useAuth } from '../../../context/AuthContext';
 import retakeTestsService from '../../../services/retake-tests.service';
-import profileService from '../../../services/profile/profile.service';
+import { SKILL_CATEGORIES, SKILL_CATEGORY_LABELS } from '../../../constants/skillCategories';
 
 export default function RetakeSkillsTest() {
+  const toast = useToast();
+  const { refreshUser } = useAuth();
   const [skills, setSkills] = useState([]);
   const [selectedSkills, setSelectedSkills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
-  const [activeCategory, setActiveCategory] = useState('skill');
+  const [done, setDone] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(SKILL_CATEGORIES[0]);
 
   useEffect(() => {
-    fetchSkills();
-  }, []);
-
-  const fetchSkills = async () => {
-    try {
-      const data = await retakeTestsService.getSkills();
-      setSkills(data);
-      setLoading(false);
-    } catch (err) {
-      setMessage('Failed to load skills');
-      setLoading(false);
-    }
-  };
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await retakeTestsService.getSkills();
+        if (mounted) setSkills(data);
+      } catch {
+        if (mounted) toast.error('Failed to load skills');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, [toast]);
 
   const toggleSkill = (skillId) => {
-    setSelectedSkills(prev =>
-      prev.includes(skillId)
-        ? prev.filter(id => id !== skillId)
-        : [...prev, skillId]
+    setSelectedSkills((prev) =>
+      prev.includes(skillId) ? prev.filter((id) => id !== skillId) : [...prev, skillId]
     );
   };
 
   const handleSubmit = async () => {
     if (selectedSkills.length === 0) {
-      setMessage('Please select at least one skill');
+      toast.error('Please select at least one skill');
       return;
     }
-
     setSubmitting(true);
     try {
       await retakeTestsService.retakeSkillsTest(selectedSkills);
-      setMessage('✅ Skills updated successfully!');
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      await refreshUser();
+      setDone(true);
+      toast.success('Skills updated');
     } catch (err) {
-      setMessage(`Error: ${err.message}`);
+      toast.error(err.response?.data?.message || 'Could not update skills');
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) return <div className="loading">Loading skills...</div>;
+  if (done) {
+    return (
+      <Card padding="lg" className="text-center">
+        <CheckCircle2 className="w-10 h-10 mx-auto text-teal-600 dark:text-teal-400" />
+        <h3 className="mt-3 text-lg font-semibold text-zinc-900 dark:text-zinc-50">Skills updated</h3>
+        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Your profile now reflects your selection.</p>
+      </Card>
+    );
+  }
 
-  const categories = ['skill', 'knowledge', 'certification', 'softSkill'];
-  const categoryLabels = {
-    skill: 'Technical Skills',
-    knowledge: 'Knowledge Areas',
-    certification: 'Certifications',
-    softSkill: 'Soft Skills',
-  };
+  if (loading) return <Skeleton className="h-64" />;
 
-  const filteredSkills = skills.filter(s => s.category === activeCategory);
+  const filteredSkills = skills.filter((s) => s.category === activeCategory);
 
   return (
-    <div className="skills-test">
-      <div className="skills-header">
-        <p>Select the skills and knowledge areas you have:</p>
-        <p className="selected-count">
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">Select the skills you have:</p>
+        <span className="text-xs font-medium tabular-nums text-teal-700 dark:text-teal-300">
           {selectedSkills.length} selected
-        </p>
+        </span>
       </div>
 
-      <div className="category-tabs">
-        {categories.map(cat => (
+      <div className="flex flex-wrap gap-1 p-1 mb-4 rounded-2xl bg-zinc-100/70 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
+        {SKILL_CATEGORIES.map((cat) => (
           <button
             key={cat}
-            className={`category-tab ${activeCategory === cat ? 'active' : ''}`}
+            type="button"
             onClick={() => setActiveCategory(cat)}
+            className={[
+              'px-3 py-1.5 text-sm font-medium rounded-xl transition',
+              activeCategory === cat
+                ? 'bg-white text-zinc-900 dark:bg-white/10 dark:text-zinc-50 shadow-sm'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100',
+            ].join(' ')}
           >
-            {categoryLabels[cat]}
+            {SKILL_CATEGORY_LABELS[cat]}
           </button>
         ))}
       </div>
 
-      <div className="skills-grid">
+      <Card>
         {filteredSkills.length > 0 ? (
-          filteredSkills.map(skill => (
-            <label key={skill._id} className="skill-chip">
-              <input
-                type="checkbox"
-                checked={selectedSkills.includes(skill._id)}
-                onChange={() => toggleSkill(skill._id)}
-              />
-              <span>{skill.name}</span>
-            </label>
-          ))
+          <div className="flex flex-wrap gap-2">
+            {filteredSkills.map((skill) => {
+              const active = selectedSkills.includes(skill._id);
+              return (
+                <button
+                  key={skill._id}
+                  type="button"
+                  onClick={() => toggleSkill(skill._id)}
+                  aria-pressed={active}
+                  className={[
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm transition',
+                    active
+                      ? 'border-teal-500 bg-teal-500/10 text-teal-800 dark:text-teal-200'
+                      : 'border-zinc-200 dark:border-white/10 bg-white dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:border-teal-400',
+                  ].join(' ')}
+                >
+                  {active && <Check className="w-3.5 h-3.5" />}
+                  {skill.name}
+                </button>
+              );
+            })}
+          </div>
         ) : (
-          <p className="no-skills">No {categoryLabels[activeCategory].toLowerCase()} available</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            No {SKILL_CATEGORY_LABELS[activeCategory].toLowerCase()} available.
+          </p>
         )}
-      </div>
+      </Card>
 
-      <div className="action-buttons">
-        <button
-          className="reset-btn"
-          onClick={() => setSelectedSkills([])}
-        >
-          Clear All
-        </button>
-        <button
-          className="submit-btn"
-          onClick={handleSubmit}
-          disabled={selectedSkills.length === 0 || submitting}
-        >
-          {submitting ? 'Updating...' : 'Update Skills'}
-        </button>
+      <div className="mt-4 flex justify-between gap-3">
+        <Button variant="ghost" onClick={() => setSelectedSkills([])} disabled={selectedSkills.length === 0}>
+          Clear all
+        </Button>
+        <Button onClick={handleSubmit} loading={submitting} disabled={selectedSkills.length === 0}>
+          Update skills
+        </Button>
       </div>
-
-      {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-          {message}
-        </div>
-      )}
     </div>
   );
 }

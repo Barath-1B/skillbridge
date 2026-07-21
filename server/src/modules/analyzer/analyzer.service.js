@@ -1,7 +1,11 @@
 const User = require('../../models/user.model');
 const CareerPath = require('../../models/career-path.model');
 const ApiError = require('../../utils/ApiError');
-const { analyzeCareerPath } = require('../../utils/gap-engine');
+const { analyzeCareerPath, ELIGIBILITY_THRESHOLD } = require('../../utils/gap-engine');
+
+// Demand is a market signal, not a fit signal — it never changes matchScore.
+// It only nudges the "best opportunity" ranking the UI can sort by.
+const DEMAND_BOOST = { low: 0, medium: 2, high: 5 };
 
 const runAnalysis = async (userId) => {
   const user = await User.findById(userId)
@@ -13,15 +17,18 @@ const runAnalysis = async (userId) => {
   }
 
   const careerPaths = await CareerPath.find({})
-    .populate('requiredSkills.skillId', 'name category');
+    .populate('requiredSkills.skillId', 'name category relatedSkills difficultyLevel learningHours');
 
-  // Build a Set of the user's skill IDs (strings) for O(1) lookup
-  const userSkillIdSet = new Set(
-    user.currentSkills.map(s => s._id.toString())
-  );
+  const userProfile = {
+    skillIdSet: new Set(user.currentSkills.map(s => s._id.toString())),
+    skillNameSet: new Set(user.currentSkills.map(s => s.name.toLowerCase())),
+    certifications: user.certifications || [],
+    ocean: user.oceanScore || {},
+    experience: user.experience,
+    interests: user.interests || [],
+  };
 
   const results = careerPaths.map(cp => {
-    // Normalise requiredSkills into plain objects for the gap engine
     const requiredSkills = cp.requiredSkills
       .filter(rs => rs.skillId) // skip any broken refs
       .map(rs => ({
@@ -30,20 +37,19 @@ const runAnalysis = async (userId) => {
         category: rs.skillId.category,
         weight: rs.weight,
         priority: rs.priority,
+        relatedSkills: rs.skillId.relatedSkills || [],
       }));
 
     const careerData = {
       domain: cp.domain,
+      title: cp.title,
+      difficulty: cp.difficulty,
+      demand: cp.demand,
       requiredSkills,
       requiredCerts: cp.certifications,
     };
 
-    const analysis = analyzeCareerPath(
-      userSkillIdSet,
-      user.certifications,
-      user.oceanScore,
-      careerData
-    );
+    const analysis = analyzeCareerPath(userProfile, careerData);
 
     return {
       careerPath: {
@@ -60,17 +66,20 @@ const runAnalysis = async (userId) => {
         certifications: cp.certifications,
       },
       ...analysis,
+      // Separate "best opportunity" score = fit + bounded market-demand nudge.
+      recommendedScore: Math.min(100, analysis.matchScore + (DEMAND_BOOST[cp.demand] || 0)),
     };
   });
 
   results.sort((a, b) => b.matchScore - a.matchScore);
 
-  const eligibleCount = results.filter(r => r.matchScore >= 20).length;
+  const eligibleCount = results.filter(r => r.isEligible).length;
 
   return {
     results,
     totalPaths: results.length,
     eligibleCount,
+    eligibilityThreshold: ELIGIBILITY_THRESHOLD,
     userSkillCount: user.currentSkills.length,
     hasCompletedProfile: user.currentSkills.length > 0,
   };

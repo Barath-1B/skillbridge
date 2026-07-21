@@ -193,8 +193,53 @@ const listUsers = async (page = 1, limit = 20, filters = {}) => {
     .limit(limit)
     .sort({ createdAt: -1 });
 
+  // Aggregate each user's saved-career progress in one query, then attach a
+  // lightweight summary so the admin "members" view can show where each
+  // member is at without recomputing the gap engine per user.
+  const userIds = users.map((u) => u._id);
+  const progressByUser = {};
+  if (userIds.length > 0) {
+    const grouped = await UserProgress.aggregate([
+      { $match: { userId: { $in: userIds } } },
+      {
+        $group: {
+          _id: '$userId',
+          savedCareers: { $sum: 1 },
+          avgProgress: { $avg: '$percentComplete' },
+          bestProgress: { $max: '$percentComplete' },
+        },
+      },
+    ]);
+    grouped.forEach((g) => {
+      progressByUser[String(g._id)] = {
+        savedCareers: g.savedCareers,
+        avgProgress: Math.round(g.avgProgress || 0),
+        bestProgress: Math.round(g.bestProgress || 0),
+      };
+    });
+  }
+
+  const enrichedUsers = users.map((u) => {
+    const obj = u.toObject({ versionKey: false });
+    const summary = progressByUser[String(u._id)] || {
+      savedCareers: 0,
+      avgProgress: 0,
+      bestProgress: 0,
+    };
+    return {
+      ...obj,
+      progress: {
+        ...summary,
+        profileComplete: (obj.currentSkills?.length || 0) > 0,
+        oceanCompleted: Boolean(obj.lastOceanTestDate),
+        skillsCount: obj.currentSkills?.length || 0,
+        certificationsCount: obj.certifications?.length || 0,
+      },
+    };
+  });
+
   return {
-    users,
+    users: enrichedUsers,
     pagination: {
       total,
       page,
@@ -202,6 +247,40 @@ const listUsers = async (page = 1, limit = 20, filters = {}) => {
       pages: Math.ceil(total / limit),
     },
   };
+};
+
+const updateUserRole = async (userId, role) => {
+  if (!['user', 'admin'].includes(role)) {
+    throw new ApiError(400, 'Invalid role');
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { role },
+    { new: true, runValidators: true }
+  ).select('-password');
+
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  return user;
+};
+
+const deleteUser = async (userId, requesterId) => {
+  if (String(userId) === String(requesterId)) {
+    throw new ApiError(400, 'You cannot delete your own account from the admin panel');
+  }
+
+  const user = await User.findByIdAndDelete(userId);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+
+  // Clean up the user's progress records
+  await UserProgress.deleteMany({ userId });
+
+  return { message: 'User deleted successfully', deletedUserId: userId };
 };
 
 // Analytics Services
@@ -259,5 +338,7 @@ module.exports = {
   updateSkill,
   deleteSkill,
   listUsers,
+  updateUserRole,
+  deleteUser,
   getAnalytics,
 };

@@ -1,19 +1,24 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Tab } from '@headlessui/react';
-import { Pencil, Calendar, Award, Sparkles, Settings, RotateCcw } from 'lucide-react';
+import { Pencil, Calendar, Award, Sparkles, Settings, RotateCcw, CheckCircle2, Circle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PageContainer from '../components/common/PageContainer';
 import Card from '../components/common/Card';
 import Avatar from '../components/common/Avatar';
 import Button from '../components/common/Button';
 import Badge from '../components/common/Badge';
+import ProgressBar from '../components/common/ProgressBar';
 import EmptyState from '../components/common/EmptyState';
-import { SkeletonText } from '../components/common/Skeleton';
+import Skeleton, { SkeletonText } from '../components/common/Skeleton';
 import { staggerParent, fadeUp } from '../utils/motion';
 import { EXPERIENCE_LABELS } from '../constants/experience';
-import { OCEAN_TRAITS } from '../constants/ocean';
+import { OCEAN_TRAITS, oceanTier } from '../constants/ocean';
+import { MBTI_TYPES, MBTI_DIMENSIONS } from '../constants/mbti';
+import { skillCategoryLabel } from '../constants/skillCategories';
+import CertificationsManager from '../components/profile/CertificationsManager';
+import InterestsEditor from '../components/profile/InterestsEditor';
 
 function TabBtn({ children, selected }) {
   return (
@@ -32,8 +37,20 @@ function TabBtn({ children, selected }) {
 }
 
 export default function ProfilePage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const data = user || {};
+
+  // Pull fresh profile data on mount so the page reflects the DB (the cached
+  // auth user can be stale after onboarding saves).
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (mounted) await refreshUser();
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [refreshUser]);
   const memberSince = useMemo(() => {
     if (!data.createdAt) return null;
     return new Date(data.createdAt).toLocaleDateString(undefined, {
@@ -52,6 +69,18 @@ export default function ProfilePage() {
     });
     return grouped;
   }, [data.currentSkills]);
+
+  const completeness = useMemo(() => {
+    // The three core onboarding steps. Certifications are optional and tracked
+    // separately, so they don't gate completion.
+    const checks = [
+      { label: 'Experience set', done: Boolean(data.experience) },
+      { label: 'Skills added', done: (data.currentSkills?.length || 0) > 0 },
+      { label: 'Personality test', done: Boolean(data.lastOceanTestDate) },
+    ];
+    const doneCount = checks.filter((c) => c.done).length;
+    return { checks, percent: Math.round((doneCount / checks.length) * 100) };
+  }, [data.experience, data.currentSkills, data.lastOceanTestDate]);
 
   return (
     <PageContainer>
@@ -111,6 +140,42 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
+      {!loading && completeness.percent < 100 && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-6"
+        >
+          <Card>
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <div>
+                <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">Profile completeness</h3>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  A fuller profile means sharper career matches.
+                </p>
+              </div>
+              <span className="text-2xl font-bold text-teal-600 tabular-nums">{completeness.percent}%</span>
+            </div>
+            <ProgressBar progress={completeness.percent} showLabel={false} />
+            <div className="flex flex-wrap gap-3 mt-3">
+              {completeness.checks.map((c) => (
+                <span
+                  key={c.label}
+                  className={[
+                    'inline-flex items-center gap-1.5 text-xs',
+                    c.done ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400',
+                  ].join(' ')}
+                >
+                  {c.done ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                  {c.label}
+                </span>
+              ))}
+            </div>
+          </Card>
+        </motion.div>
+      )}
+
       <Tab.Group>
         <Tab.List className="inline-flex gap-1 p-1 mb-6 rounded-2xl bg-zinc-100/70 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10">
           <Tab as="div">{({ selected }) => <TabBtn selected={selected}>Overview</TabBtn>}</Tab>
@@ -143,17 +208,7 @@ export default function ProfilePage() {
 
                 <motion.div variants={fadeUp}>
                   <Card title="Interests" subtitle="What excites you">
-                    {Array.isArray(data.interests) && data.interests.length > 0 ? (
-                      <div className="flex flex-wrap gap-2">
-                        {data.interests.map((i) => (
-                          <Badge key={i} variant="primary">
-                            {i}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">No interests added yet.</p>
-                    )}
+                    <InterestsEditor />
                   </Card>
                 </motion.div>
 
@@ -175,23 +230,7 @@ export default function ProfilePage() {
                       </div>
                     }
                   >
-                    {Array.isArray(data.certifications) && data.certifications.length > 0 ? (
-                      <ul className="grid sm:grid-cols-2 gap-2">
-                        {data.certifications.map((c) => (
-                          <li
-                            key={c}
-                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/60 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10 text-sm text-zinc-700 dark:text-zinc-200"
-                          >
-                            <Award className="w-4 h-4 text-amber-500" />
-                            {c}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                        No certifications listed yet.
-                      </p>
-                    )}
+                    <CertificationsManager />
                   </Card>
                 </motion.div>
               </motion.div>
@@ -218,8 +257,8 @@ export default function ProfilePage() {
                 {Object.entries(skillsByCategory).map(([category, list]) => (
                   <Card key={category}>
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold capitalize text-zinc-900 dark:text-zinc-50">
-                        {category}
+                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-50">
+                        {skillCategoryLabel(category)}
                       </h3>
                       <Link
                         to="/retake-tests"
@@ -247,7 +286,9 @@ export default function ProfilePage() {
             {loading ? (
               <SkeletonText lines={5} />
             ) : (
-              <Card>
+              <div className="space-y-4">
+                <MbtiCard mbtiType={data.mbtiType} mbtiScores={data.mbtiScores} />
+                <Card>
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
@@ -267,13 +308,16 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {OCEAN_TRAITS.map(({ key, label }) => {
+                  {OCEAN_TRAITS.map(({ key, label, description }) => {
                     const score = data.oceanScore?.[key] ?? 50;
                     return (
                       <div key={key}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="font-medium text-zinc-700 dark:text-zinc-200">{label}</span>
-                          <span className="tabular-nums text-zinc-500 dark:text-zinc-400">{score}</span>
+                        <div className="flex justify-between items-baseline text-sm mb-1">
+                          <span className="font-medium text-zinc-700 dark:text-zinc-200" title={description}>{label}</span>
+                          <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
+                            <span className="text-teal-700 dark:text-teal-300 font-medium">{oceanTier(score)}</span>
+                            {' · '}{score}
+                          </span>
                         </div>
                         <div className="w-full h-2 rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
                           <motion.div
@@ -287,11 +331,97 @@ export default function ProfilePage() {
                     );
                   })}
                 </div>
-              </Card>
+                </Card>
+              </div>
             )}
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>
     </PageContainer>
+  );
+}
+
+function MbtiCard({ mbtiType, mbtiScores }) {
+  if (!mbtiType) {
+    return (
+      <Card>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+              Myers-Briggs (MBTI)
+            </h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+              Discover your 4-letter type. Takes about 5 minutes.
+            </p>
+          </div>
+          <Link to="/quiz/mbti">
+            <Button leftIcon={<Sparkles className="w-4 h-4" />}>Take MBTI test</Button>
+          </Link>
+        </div>
+      </Card>
+    );
+  }
+
+  const type = MBTI_TYPES[mbtiType];
+  const scores = mbtiScores || {};
+
+  return (
+    <Card>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            Myers-Briggs (MBTI)
+          </h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Display only — does not affect your match scores.
+          </p>
+        </div>
+        <Link
+          to="/quiz/mbti"
+          className="text-xs font-medium text-teal-700 dark:text-teal-300 hover:underline inline-flex items-center gap-1"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Retake
+        </Link>
+      </div>
+
+      <div className="flex items-center gap-4 mb-5">
+        <div className="w-20 h-20 shrink-0 rounded-2xl grid place-items-center bg-linear-to-br from-teal-500 to-teal-700 text-white">
+          <span className="text-2xl font-bold tracking-wide">{mbtiType}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-zinc-900 dark:text-zinc-50">{type?.epithet || mbtiType}</p>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{type?.description}</p>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {MBTI_DIMENSIONS.map(({ pair, labels }) => {
+          const [first, second] = pair;
+          const firstPct = scores[first] ?? 50;
+          const dominant = firstPct >= 50 ? first : second;
+          return (
+            <div key={pair.join('')}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className={dominant === first ? 'font-semibold text-teal-700 dark:text-teal-300' : 'text-zinc-500 dark:text-zinc-400'}>
+                  {labels[first]} {scores[first] ?? 50}%
+                </span>
+                <span className={dominant === second ? 'font-semibold text-teal-700 dark:text-teal-300' : 'text-zinc-500 dark:text-zinc-400'}>
+                  {scores[second] ?? 50}% {labels[second]}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-zinc-200/70 dark:bg-white/10 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${firstPct}%` }}
+                  transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-full rounded-full bg-teal-600"
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }

@@ -84,6 +84,28 @@ const submitOcean = async (req, res, next) => {
   }
 };
 
+const getMbtiQuestions = async (req, res, next) => {
+  try {
+    const questions = await profileService.getMbtiQuestions();
+    ApiResponse.ok(res, 'MBTI questions retrieved', questions);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const submitMbti = async (req, res, next) => {
+  try {
+    const { answers } = req.body;
+    const updatedProfile = await profileService.computeAndSaveMbti(
+      req.user.userId,
+      answers
+    );
+    ApiResponse.ok(res, 'MBTI result computed and saved', updatedProfile);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -92,4 +114,6 @@ module.exports = {
   getSkills,
   getOceanQuestions,
   submitOcean,
+  getMbtiQuestions,
+  submitMbti,
 };

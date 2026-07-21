@@ -3,6 +3,7 @@ const profileController = require('./profile.controller');
 const {
   updateProfileValidators,
   oceanValidators,
+  mbtiValidators,
   updateAccountValidators,
   updateSettingsValidators,
 } = require('./profile.validators');
@@ -18,5 +19,7 @@ router.put('/settings', authenticate, updateSettingsValidators, validate, profil
 router.get('/skills', profileController.getSkills);
 router.get('/ocean/questions', profileController.getOceanQuestions);
 router.post('/ocean', authenticate, oceanValidators, validate, profileController.submitOcean);
+router.get('/mbti/questions', profileController.getMbtiQuestions);
+router.post('/mbti', authenticate, mbtiValidators, validate, profileController.submitMbti);
 
 module.exports = router;

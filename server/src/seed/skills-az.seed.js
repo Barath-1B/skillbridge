@@ -3,7 +3,8 @@
  * ─────────────────────────────────────────────────────────────
  * File: server/src/seed/skills-az.seed.js
  *
- * 160 skills · 26 letters · 3 categories
+ * A–Z technical/knowledge skills + a soft-skills set · 4 categories
+ * (technical-skill, knowledge, certification, soft-skill)
  * Run via: npm run seed
  */
 
@@ -1148,6 +1149,240 @@ const skillsAZ = [
       { title: 'ZooKeeper Documentation', url: 'https://zookeeper.apache.org/doc/current/', type: 'documentation', platform: 'Apache' },
     ],
   },
+
+  // ══════════ SOFT SKILLS ══════════
+  // Non-technical competencies surfaced in gap analysis alongside technical skills.
+  {
+    name: 'Communication',
+    category: 'soft-skill',
+    description: 'Clearly conveying ideas in writing and speech: documentation, code reviews, stakeholder updates, and presentations.',
+    tags: ['collaboration', 'writing', 'presentation', 'interpersonal'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Technical Writing — Google Developers', url: 'https://developers.google.com/tech-writing', type: 'course', platform: 'Google' },
+    ],
+  },
+  {
+    name: 'Teamwork & Collaboration',
+    category: 'soft-skill',
+    description: 'Working effectively within cross-functional teams: pairing, code reviews, shared ownership, and constructive feedback.',
+    tags: ['collaboration', 'agile', 'interpersonal'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Working in Teams', url: 'https://www.coursera.org/learn/teamwork-skills-effective-communication', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Leadership',
+    category: 'soft-skill',
+    description: 'Guiding teams and initiatives: setting direction, mentoring, delegating, and driving technical decisions to consensus.',
+    tags: ['management', 'mentorship', 'ownership'],
+    difficultyLevel: 'advanced',
+    resources: [
+      { title: 'The Manager\'s Path', url: 'https://www.oreilly.com/library/view/the-managers-path/9781491973882/', type: 'book', platform: "O'Reilly" },
+    ],
+  },
+  {
+    name: 'Problem Solving',
+    category: 'soft-skill',
+    description: 'Breaking down ambiguous problems, reasoning about trade-offs, and arriving at pragmatic, testable solutions.',
+    tags: ['analysis', 'debugging', 'critical-thinking'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'How to Solve It (Polya)', url: 'https://press.princeton.edu/books/paperback/9780691164076/how-to-solve-it', type: 'book', platform: 'Princeton' },
+    ],
+  },
+  {
+    name: 'Adaptability',
+    category: 'soft-skill',
+    description: 'Staying effective amid changing requirements, new tools, and shifting priorities; learning quickly on the job.',
+    tags: ['growth-mindset', 'learning', 'resilience'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Learning How to Learn', url: 'https://www.coursera.org/learn/learning-how-to-learn', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Time Management',
+    category: 'soft-skill',
+    description: 'Prioritising work, estimating effort, meeting deadlines, and balancing depth against delivery.',
+    tags: ['productivity', 'planning', 'prioritisation'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Getting Things Done', url: 'https://gettingthingsdone.com/', type: 'book', platform: 'GTD' },
+    ],
+  },
+  {
+    name: 'Critical Thinking',
+    category: 'soft-skill',
+    description: 'Evaluating evidence, questioning assumptions, and making reasoned decisions under uncertainty.',
+    tags: ['analysis', 'reasoning', 'decision-making'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Critical Thinking', url: 'https://www.edx.org/learn/critical-thinking-skills', type: 'course', platform: 'edX' },
+    ],
+  },
+  {
+    name: 'Emotional Intelligence',
+    category: 'soft-skill',
+    description: 'Self-awareness and empathy: reading team dynamics, giving and receiving feedback, and managing interpersonal friction.',
+    tags: ['interpersonal', 'empathy', 'self-awareness'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Emotional Intelligence at Work', url: 'https://www.coursera.org/learn/emotional-intelligence-in-leadership', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Conflict Resolution',
+    category: 'soft-skill',
+    description: 'Navigating disagreements constructively: facilitating discussions, finding common ground, and de-escalating tension.',
+    tags: ['interpersonal', 'negotiation', 'teamwork'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Crucial Conversations', url: 'https://cruciallearning.com/crucial-conversations-book/', type: 'book', platform: 'Crucial Learning' },
+    ],
+  },
+  {
+    name: 'Creativity',
+    category: 'soft-skill',
+    description: 'Generating novel ideas and approaches: design thinking, prototyping, and connecting concepts across domains.',
+    tags: ['design-thinking', 'innovation', 'ideation'],
+    difficultyLevel: 'intermediate',
+    resources: [
+      { title: 'Creative Thinking', url: 'https://www.coursera.org/learn/creative-thinking-techniques-and-tools-for-success', type: 'course', platform: 'Coursera' },
+    ],
+  },
+  {
+    name: 'Work Ethic',
+    category: 'soft-skill',
+    description: 'Reliability, accountability, and follow-through: owning outcomes, meeting commitments, and maintaining quality under pressure.',
+    tags: ['reliability', 'ownership', 'professionalism'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'Deep Work', url: 'https://www.calnewport.com/books/deep-work/', type: 'book', platform: 'Cal Newport' },
+    ],
+  },
+  {
+    name: 'Attention to Detail',
+    category: 'soft-skill',
+    description: 'Precision in execution: catching edge cases, writing thorough tests, and reviewing work for correctness and consistency.',
+    tags: ['quality', 'testing', 'review'],
+    difficultyLevel: 'beginner',
+    resources: [
+      { title: 'The Pragmatic Programmer', url: 'https://pragprog.com/titles/tpp20/the-pragmatic-programmer-20th-anniversary-edition/', type: 'book', platform: 'Pragmatic Bookshelf' },
+    ],
+  },
 ];
 
-module.exports = skillsAZ;
+// ─────────────────────────────────────────────────────────────────────────
+// Skill adjacency (transfer credit). Keyed by skill name; each entry lists the
+// skills that grant partial credit toward it, with a 0-1 similarity. The gap
+// engine uses the best available adjacent skill a user holds (see gap-engine.js).
+// Kept as one centralized map so the 100+ skill definitions above stay untouched.
+// ─────────────────────────────────────────────────────────────────────────
+const ADJACENCY = {
+  // Frontend frameworks
+  'React': [{ name: 'Vue.js', similarity: 0.65 }, { name: 'Angular', similarity: 0.6 }],
+  'Vue.js': [{ name: 'React', similarity: 0.65 }, { name: 'Angular', similarity: 0.6 }],
+  'Angular': [{ name: 'React', similarity: 0.6 }, { name: 'Vue.js', similarity: 0.6 }, { name: 'TypeScript', similarity: 0.4 }],
+  // Web markup
+  'HTML5': [{ name: 'CSS & Responsive Design', similarity: 0.5 }],
+  'CSS & Responsive Design': [{ name: 'HTML5', similarity: 0.5 }],
+  // JS/TS
+  'JavaScript': [{ name: 'TypeScript', similarity: 0.8 }],
+  'TypeScript': [{ name: 'JavaScript', similarity: 0.85 }],
+  // Backend languages
+  'Java': [{ name: 'C#', similarity: 0.7 }, { name: 'Kotlin', similarity: 0.75 }],
+  'C#': [{ name: 'Java', similarity: 0.7 }],
+  'Kotlin': [{ name: 'Java', similarity: 0.8 }],
+  'C++': [{ name: 'C Programming', similarity: 0.7 }, { name: 'C#', similarity: 0.5 }],
+  'C Programming': [{ name: 'C++', similarity: 0.7 }],
+  'Go (Golang)': [{ name: 'C Programming', similarity: 0.4 }],
+  // Backend frameworks
+  'Node.js': [{ name: 'Express.js', similarity: 0.7 }],
+  'Express.js': [{ name: 'Node.js', similarity: 0.6 }, { name: 'FastAPI', similarity: 0.4 }, { name: 'Django', similarity: 0.4 }],
+  'Django': [{ name: 'FastAPI', similarity: 0.6 }, { name: 'Express.js', similarity: 0.4 }],
+  'FastAPI': [{ name: 'Django', similarity: 0.6 }, { name: 'Express.js', similarity: 0.4 }],
+  'Spring Boot': [{ name: 'Express.js', similarity: 0.4 }, { name: 'Django', similarity: 0.4 }],
+  // Databases
+  'SQL': [{ name: 'MySQL & PostgreSQL', similarity: 0.8 }, { name: 'PostgreSQL', similarity: 0.8 }, { name: 'Database Design', similarity: 0.6 }],
+  'PostgreSQL': [{ name: 'MySQL & PostgreSQL', similarity: 0.9 }, { name: 'SQL', similarity: 0.85 }],
+  'MySQL & PostgreSQL': [{ name: 'SQL', similarity: 0.8 }, { name: 'PostgreSQL', similarity: 0.9 }, { name: 'Database Design', similarity: 0.6 }],
+  'MongoDB': [{ name: 'Redis', similarity: 0.4 }, { name: 'Database Design', similarity: 0.5 }],
+  'Redis': [{ name: 'MongoDB', similarity: 0.4 }],
+  // Cloud / infra
+  'AWS (Amazon Web Services)': [{ name: 'Google Cloud Platform', similarity: 0.6 }, { name: 'Cloud Computing', similarity: 0.7 }],
+  'Google Cloud Platform': [{ name: 'AWS (Amazon Web Services)', similarity: 0.6 }, { name: 'Cloud Computing', similarity: 0.7 }],
+  'Cloud Computing': [{ name: 'AWS (Amazon Web Services)', similarity: 0.7 }, { name: 'Google Cloud Platform', similarity: 0.7 }],
+  'Docker': [{ name: 'Kubernetes', similarity: 0.5 }, { name: 'Virtualisation & Hypervisors', similarity: 0.4 }],
+  'Kubernetes': [{ name: 'Docker', similarity: 0.55 }],
+  'Terraform': [{ name: 'Infrastructure as Code', similarity: 0.8 }],
+  'Infrastructure as Code': [{ name: 'Terraform', similarity: 0.8 }],
+  'DevOps': [{ name: 'CI/CD Pipelines', similarity: 0.6 }, { name: 'Docker', similarity: 0.4 }],
+  'CI/CD Pipelines': [{ name: 'Jenkins', similarity: 0.6 }, { name: 'DevOps', similarity: 0.5 }],
+  'Jenkins': [{ name: 'CI/CD Pipelines', similarity: 0.6 }],
+  // ML / data
+  'Machine Learning': [{ name: 'Deep Learning', similarity: 0.6 }, { name: 'Statistics & Probability', similarity: 0.4 }],
+  'Deep Learning': [{ name: 'Machine Learning', similarity: 0.7 }],
+  'TensorFlow & Keras': [{ name: 'PyTorch', similarity: 0.7 }],
+  'PyTorch': [{ name: 'TensorFlow & Keras', similarity: 0.7 }],
+  'R (Statistical Computing)': [{ name: 'Python', similarity: 0.4 }, { name: 'Statistics & Probability', similarity: 0.5 }],
+  'NumPy & Pandas': [{ name: 'R (Statistical Computing)', similarity: 0.4 }],
+  'Natural Language Processing': [{ name: 'Large Language Models (LLMs)', similarity: 0.6 }, { name: 'Machine Learning', similarity: 0.5 }],
+  'Large Language Models (LLMs)': [{ name: 'Natural Language Processing', similarity: 0.6 }, { name: 'Prompt Engineering', similarity: 0.5 }],
+  'Prompt Engineering': [{ name: 'Large Language Models (LLMs)', similarity: 0.5 }],
+  'XGBoost & Gradient Boosting': [{ name: 'Machine Learning', similarity: 0.6 }],
+  'Big Data': [{ name: 'Hadoop', similarity: 0.6 }, { name: 'Apache Spark', similarity: 0.6 }],
+  'Hadoop': [{ name: 'Apache Spark', similarity: 0.6 }, { name: 'Big Data', similarity: 0.6 }],
+  'Apache Spark': [{ name: 'Hadoop', similarity: 0.6 }, { name: 'Big Data', similarity: 0.6 }],
+  // Testing
+  'Testing (Unit, Integration, E2E)': [{ name: 'Unit Testing', similarity: 0.8 }, { name: 'Quality Assurance & Testing', similarity: 0.7 }],
+  'Unit Testing': [{ name: 'Testing (Unit, Integration, E2E)', similarity: 0.8 }],
+  'Quality Assurance & Testing': [{ name: 'Testing (Unit, Integration, E2E)', similarity: 0.7 }],
+  // Security
+  'Web Security & OWASP': [{ name: 'Information Security', similarity: 0.6 }, { name: 'Penetration Testing', similarity: 0.5 }],
+  'Information Security': [{ name: 'Web Security & OWASP', similarity: 0.6 }, { name: 'Cryptography', similarity: 0.4 }],
+  'Penetration Testing': [{ name: 'Web Security & OWASP', similarity: 0.5 }, { name: 'Information Security', similarity: 0.5 }],
+  'Cryptography': [{ name: 'Information Security', similarity: 0.4 }],
+  'Zero Trust Security': [{ name: 'Information Security', similarity: 0.5 }],
+  // API
+  'REST API Development': [{ name: 'API Design', similarity: 0.7 }, { name: 'GraphQL', similarity: 0.4 }],
+  'API Design': [{ name: 'REST API Development', similarity: 0.7 }, { name: 'GraphQL', similarity: 0.4 }],
+  'GraphQL': [{ name: 'REST API Development', similarity: 0.4 }, { name: 'API Design', similarity: 0.4 }],
+  // Systems / architecture
+  'Linux & Unix Systems': [{ name: 'Bash Scripting', similarity: 0.5 }, { name: 'Unix Philosophy & CLI Tools', similarity: 0.6 }, { name: 'Operating Systems', similarity: 0.4 }],
+  'Bash Scripting': [{ name: 'Linux & Unix Systems', similarity: 0.5 }],
+  'Operating Systems': [{ name: 'Linux & Unix Systems', similarity: 0.4 }],
+  'System Design': [{ name: 'Software Architecture', similarity: 0.7 }, { name: 'Microservices Architecture', similarity: 0.5 }],
+  'Software Architecture': [{ name: 'System Design', similarity: 0.7 }, { name: 'Microservices Architecture', similarity: 0.5 }],
+  'Microservices Architecture': [{ name: 'System Design', similarity: 0.5 }, { name: 'Event-Driven Architecture', similarity: 0.4 }],
+  'Data Structures': [{ name: 'Algorithms', similarity: 0.7 }, { name: 'Binary Trees & Graphs', similarity: 0.7 }],
+  'Algorithms': [{ name: 'Data Structures', similarity: 0.7 }],
+  'Binary Trees & Graphs': [{ name: 'Data Structures', similarity: 0.7 }, { name: 'Algorithms', similarity: 0.6 }],
+  // Messaging / OOP-FP
+  'Apache Kafka': [{ name: 'Queue Theory & Distributed Messaging', similarity: 0.5 }, { name: 'Event-Driven Architecture', similarity: 0.4 }],
+  'Object-Oriented Programming': [{ name: 'Functional Programming', similarity: 0.3 }],
+  'Functional Programming': [{ name: 'Object-Oriented Programming', similarity: 0.3 }],
+};
+
+// Attach adjacency to skills and warn on any name that doesn't resolve to a
+// seeded skill (those would be silently dropped from transfer credit otherwise).
+const _skillNames = new Set(skillsAZ.map(s => s.name));
+Object.entries(ADJACENCY).forEach(([skillName, related]) => {
+  if (!_skillNames.has(skillName)) {
+    console.warn(`  Warning: adjacency defined for unknown skill "${skillName}" — ignored.`);
+    return;
+  }
+  related.forEach(r => {
+    if (!_skillNames.has(r.name)) {
+      console.warn(`  Warning: "${skillName}" relatedSkill "${r.name}" not in seed — dropped.`);
+    }
+  });
+});
+
+const skillsWithAdjacency = skillsAZ.map(s => ({
+  ...s,
+  relatedSkills: (ADJACENCY[s.name] || []).filter(r => _skillNames.has(r.name)),
+}));
+
+module.exports = skillsWithAdjacency;

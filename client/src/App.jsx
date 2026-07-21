@@ -1,7 +1,5 @@
-import { Provider } from 'react-redux';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import store from './store/store';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -14,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import CareerBrief from './pages/CareerBrief';
 import ProfileSetup from './pages/ProfileSetup';
 import OceanQuiz from './pages/OceanQuiz';
+import MbtiQuiz from './pages/MbtiQuiz';
 import AnalyzerResults from './pages/AnalyzerResults';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
@@ -53,6 +52,10 @@ function AnimatedRoutes() {
         <Route
           path="/setup/ocean"
           element={<ProtectedRoute element={<AnimatedPage><OceanQuiz /></AnimatedPage>} />}
+        />
+        <Route
+          path="/quiz/mbti"
+          element={<ProtectedRoute element={<AnimatedPage><MbtiQuiz /></AnimatedPage>} />}
         />
         <Route
           path="/analyze"
@@ -110,16 +113,14 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <AppShell>
-              <AnimatedRoutes />
-            </AppShell>
-          </BrowserRouter>
-        </ToastProvider>
-      </AuthProvider>
-    </Provider>
+    <AuthProvider>
+      <ToastProvider>
+        <BrowserRouter>
+          <AppShell>
+            <AnimatedRoutes />
+          </AppShell>
+        </BrowserRouter>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
