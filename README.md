@@ -1,7 +1,19 @@
-# SkillBridge
+<div align="center">
 
-A career-path advisor for computer science students and early-career developers. It compares what
-you already know against what a career actually requires, and tells you what is missing.
+# 🧭 SkillBridge
+
+### A career-path advisor for CS students and early-career developers
+
+*It compares what you already know against what a career actually requires — and tells you exactly what's missing.*
+
+![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express_4-000000?style=for-the-badge&logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+
+</div>
 
 ## Overview
 
